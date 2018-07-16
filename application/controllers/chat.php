@@ -59,7 +59,8 @@ class Chat extends CI_Controller
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
-    public function loadNewMessage($receiverPseudo, $conversationType, $conversationDate, $receiverLastMessageTime) {
+    // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'notRead'
+    public function loadNewMessage() {
         $newMessages = $this->chatManager->getData('*', array('receiver' => $thi->session->userdata('userName'), 'messageStatus' => 'newPost'), null, null, 'senderHeurePub');
 
         // S'il n'y a pas de nouveaux messages on crée la variable $messagesList = 'empty'
@@ -79,13 +80,8 @@ class Chat extends CI_Controller
         /* On charge le messae de tout le monde, where receiver = session[userName] AND message status = 'notRead'
             => on n'a plus besoin des paramètres d'en haut
             Exemple :
-                1er cas :
-                    douze post a grasset =>
-                    sender = 12 et receiver = grasset  --- status not read
-
-                2 cas :
-                    grasset post à douze =>
-                    serder = grasset et receiver = 12  --- status not read
+                douze post a grasset =>
+                sender = 12 et receiver = grasset  --- status not read
 
                 requete loadNewMessages
                     slect * where receiver = userName and status = not read
@@ -96,7 +92,7 @@ class Chat extends CI_Controller
     // AJAX Ajoute un message - POST via formulaire ---------------------------------------------------------------------------------------------------
     public function postNewMessage() {
         // On insère le message POST avec status 'newPost' dans messages +
-        // Mise à jour de membres : set NewPost et sentTo (POST - receiver) WHERE pseudo = sender (session[userName])
+        // Mise à jour de membres : set NewPost et sentTo (POST - receiverPseudo) WHERE pseudo = sender (session[userName])
         $heurePub = date("H:i");
         $this->chatManager->addEntry(     array('sender'         => $this->session->userdata('userName'),
                                                 'receiver'       => $this->input->post('receiverPseudo'),
@@ -105,8 +101,8 @@ class Chat extends CI_Controller
                                           array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
                                                 'senderHeurePub' => $heurePub));
         $this->memberManager->updateEntry(array('pseudo'         => $this->session->userdata('userName')),
-                                                'messageStatus'  => 'newPost',
-                                                'sentTo'         => $this->input->post('receiverPseudo'));
+                                          array('messageStatus'  => 'newPost',
+                                                'sentTo'         => $this->input->post('receiverPseudo')));
 
         // Ensuite on envoie la réponse AJAX
         $response  = [array('status'         => 'postMessage'),
@@ -114,7 +110,7 @@ class Chat extends CI_Controller
                             'senderHeurePub' => $heurePub)];
         echo json_encode($response);
         return true;
-        // END 
+        // END
 
 
         // recuperer en POST $receiverPseudo, $senderMessage
@@ -125,8 +121,7 @@ class Chat extends CI_Controller
 
 
             /* Exemple :
-                    1er cas :
-                        12 post a grasset =>
+                    12 post a grasset =>
                         grasset a newMessage de 12 =>
                         12 status = new Post,  sentTo = grasset
 
@@ -138,9 +133,9 @@ class Chat extends CI_Controller
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
     public function updateMessageStatus($senderPseudo, $messageStatus, $receiverPseudo = null, $sentTo = 'none') {
-        // Exemple : Cas update OlD POST après chargement de NewMessages dans chatRoom
-            // On modifie table messages messageStatus (oldPost) Where receiver = session[userName] AND sender = $senderPseudo
-            // On modifie table membres messageStatus (oldPost) Where pseudo = $senderPseudo ////////
+        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
+            // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
+            // On modifie table membres messageStatus, set oldPost Where pseudo = $senderPseudo ////////
 
         // Si $receiverPseudo = null => le message est destiné à session[userName]
         if($receiverPseudo == null) {
@@ -152,11 +147,22 @@ class Chat extends CI_Controller
         $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo),
                                           array('messageStatus' => $messageStatus,
                                                 'sentTo'        => $sentTo));
+        // END
     }//-----------------------------------------------------------------------------------------------------------------------------
-    // AJAX supprime en BDD les messages dont receiverPseudo = $_POST[deleteList] (array) ---------------------------------------------------------------------------------------------------
+    // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
+    // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function deleteConversation() {
-        $deleteList = unserialize($_POST['deleteList']);
-        //$deleteList est un array
+        $deleteList = unserialize($this->input->post('deleteList'));
+        for($i = 0; $i < count($deleteList); $i++)
+        {
+            if(!empty($deleteList[$i])) {
+                $this->chatManager->deleteEntries('sender', $deleteList[$i], array('receiver' => $deleteList[$i]));
+            }
+        }
+        // Ensuite on envoie la reponse AJAX
+        $response = [array('status' => 'suppression')];
+        echo json_encode($response);
+        // END
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
