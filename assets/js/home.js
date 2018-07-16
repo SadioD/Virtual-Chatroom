@@ -125,7 +125,7 @@ $(function(){
             setNewMessageIcone: function(status, element, response = null) {
                 if(status == 'ON') {
                     for(var i = 0, c = response.length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null && response[1][i].receiverPseudo == $(element).find('.name-meta').text()) {
+                        if(response[1][i].receiverMessage != null && response[1][i].receiver == $(element).find('.name-meta').text()) {
                             $(element).find('.messageIcone').show();
                         }
                     }
