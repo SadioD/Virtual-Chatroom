@@ -257,14 +257,14 @@ class MY_Model extends CI_Model
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SQL QUERIES -----------------------------------------------------------------------------------------------------------
     // cette méthode permet de recupérer les données les plus récentes (du jour le plus récent)
-    public function getLatestData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null)
+    public function getLatestData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true)
     {
         if(!empty($date)) {
             $sql = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
             $sql .=  ' WHERE ' . $date . ' = (SELECT MAX(' . $date . ') FROM ' . $this->table . ')';
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc);
+            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
     }
@@ -291,12 +291,12 @@ class MY_Model extends CI_Model
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
     // Permet de supprimer des entrées (WHERE x = x OR Y = Y)
-    public function deleteEntries($key, $value, $whereOr = array()) {
+    public function deleteEntries($key, $value, $whereOr = array(), $quickProcess = true) {
         if(!empty($key) && !empty($value) && !empty($whereOr)) {
             $sql  = '';
             $sql .= 'DELETE FROM ' . $this->table . ' WHERE ' . $key . ' = ' . $this->db->escape($value);
 
-            $this->processQuery($sql, null, $whereOr, null, null);
+            $this->processQuery($sql, null, $whereOr, null, null, $quickProcess);
         }
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
@@ -316,22 +316,44 @@ class MY_Model extends CI_Model
         return !empty($result) ? false : true;
     }//--------------------------------------------------------------------------------------------------------------------------------
     // Cette méthode traite les requetes SQL (WHERE ORDER BY DESC) pour éviter la duplication  -----------------------------------------------------------------------------------------------------------
-    protected function processQuery($sql, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null)
+    protected function processQuery($sql, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true)
     {
-        if(!empty($whereAnd)) {
+        if($quickProcess == true) {
+            if(!empty($whereAnd)) {
+                foreach($whereAnd as $key => $value) {
+                    $sql .= ' AND ' . $key . ' = ' . $this->db->escape($value);
+                }
+            }
+            if(!empty($whereOr)) {
+                foreach($whereOr as $key => $value) {
+                    $sql .= ' OR ' . $key . ' = ' . $this->db->escape($value);
+                }
+            }
+        }
+        else {
+            // On passe les variabes AND X = (A OR B)
+            $sql .= ' AND ';
+            $sql .= ' (';
             foreach($whereAnd as $key => $value) {
-                $sql .= ' AND ' . $key . ' = ' . $this->db->escape($value);
+                $sql . = $key . '=' . $this->db->escape($value) .  'OR';
             }
-        }
-        if(!empty($whereOr)) {
+            // On passe les variables AND Y = (A OR B)
+            $sql .= ') AND (';
             foreach($whereOr as $key => $value) {
-                $sql .= ' OR ' . $key . ' = ' . $this->db->escape($value);
+                $sql .= $key . '=' . $this->db->escape($value) . 'OR';
             }
+            $sql .= ')';
         }
+        // ORDER BY & DESC
         if(!empty($orderBy)) {
-            $sql .= ' ORDER BY ' . $orderBy[0];
-            for($i = 1; $i < count($orderBy); $i++) {
-                $sql .= ', ' . $orderBy[$i];
+            if(is_array($orderBy)) {
+                $sql .= ' ORDER BY ' . $orderBy[0];
+                for($i = 1; $i < count($orderBy); $i++) {
+                    $sql .= ', ' . $orderBy[$i];
+                }
+            }
+            else {
+                $sql .= ' ORDER BY ' . $orderBy;
             }
         }
         if($desc != null) {
