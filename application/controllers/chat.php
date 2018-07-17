@@ -40,11 +40,23 @@ class Chat extends CI_Controller
         }
     }//-------------------------------------------------------------------------------------------------------------------------------
     // AJAX Charge la conversation au click sur Contact, bouton Précédent, bouton Suivant ---------------------------------------------------------------------------------------------------
-    public function loadConversation($receiverPseudo, $conversationType, $conversationDate = null) {
+    public function loadConversation($contactPseudo, $conversationType, $conversationDate = null) {
         if ($conversationType == 'showConversation') {
-            // on recupère les messages de la liste
-                // on envoie une requete SQL dans table chatRoom pour les mettre en READ
-                // on envoie une requete SQL dans table membres pour update le membre =>  set status = none AND sentTo = none
+            // On recupère les messages de la liste
+                // SELECT WHERE date = MAX(date) AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            // On envoie une requete SQL dans table chatRoom pour les mettre en READ
+                // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            // On envoie une requete SQL dans table membres pour update le membre
+                // SET messagestatus = oldPost WHERE (pseudo = $pseudo OR session(user)) AND (sentTo = $pseudo OR session(user))
+            $conversation = $this->chatManager->getLatestData('*', 'datePub',
+                                                              array('sender'   => $contactPseudo, 'sender' => $this->session->userdata('userName')),
+                                                              array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
+                                                              'id', null, false);
+
+
+        // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            $this->updateMessageStatus();
+            
 
 
                 // response[0].status , response[0].photo  et response[0].du receiver (il faut rajouter response.photo à
@@ -132,21 +144,25 @@ class Chat extends CI_Controller
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
-    public function updateMessageStatus($senderPseudo, $messageStatus, $receiverPseudo = null, $sentTo = 'none') {
-        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
-            // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-            // On modifie table membres messageStatus, set oldPost Where pseudo = $senderPseudo ////////
+    public function updateMessageStatus($senderPseudo, $messageStatus, $receiverPseudo = null, $requestMethod = 'Ajax') {
+        if($requestMethod == 'Ajax') {
+            // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
+                // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
+                // On modifie table membres messageStatus, set oldPost Where pseudo = $senderPseudo ////////
 
-        // Si $receiverPseudo = null => le message est destiné à session[userName]
-        if($receiverPseudo == null) {
-            $receveirPseudo = $this->session->userdata('userName');
+            // Si $receiverPseudo = null => le message est destiné à session[userName]
+            if($receiverPseudo == null) {
+                $receveirPseudo = $this->session->userdata('userName');
+            }
+            $this->chatmanager->updateEntry(  array('receiver'      => $receiverPseudo,
+                                                    'sender'        => $senderPseudo),
+                                              array('messageStatus' => $messageStatus));
+            $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo),
+                                              array('messageStatus' => $messageStatus));
         }
-        $this->chatmanager->updateEntry(  array('receiver'      => $receiverPseudo,
-                                                'sender'        => $senderPseudo),
-                                          array('messageStatus' => $messageStatus));
-        $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo),
-                                          array('messageStatus' => $messageStatus,
-                                                'sentTo'        => $sentTo));
+        else {
+            // Ici le code pour la méthode loadConversation ('showCOnvesation') - update messageStatus in membres et messages
+        }
         // END
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
