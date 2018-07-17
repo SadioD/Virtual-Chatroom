@@ -256,13 +256,39 @@ class MY_Model extends CI_Model
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SQL QUERIES -----------------------------------------------------------------------------------------------------------
+    // cette méthode permet de mettre à jour un table WHERE (x=A or x= B) AND (y=A or y=B)
+    public function setEntries($whereAnd = array(), $whereOr = array(), $escapedData = array(), $notEscapedData = array()) {
+        if(!empty($whereAnd) && !empty($whereOr)) {
+            $sql  = '';
+            $sql .= 'UPDATE ' . $this->table . ' SET ';
+
+            // On passe les valeures échapées
+            if(!empty($escapedData)) {
+                foreach($escapedData as $key => $value) {
+                    $sql .= $key . ' = ' . $this->db->escape($value) . ', ';
+                }
+            }
+            // On passe les valeurs non échapées
+            if(!empty($notEscapedData)) {
+                foreach($notEscapedData as $key => $value) {
+                    $sql .= $key . ' = ' . $value . ', ';
+                }
+            }
+            // On retire la dernière virgule pour éviter toute erreur de syntaxe
+            $sql  = substr($sql, 0, -2);
+            $sql .= ' WHERE';
+
+            return $this->processQuery($sql, $whereAnd, $whereOr, null, null, false);
+        }
+        return false;
+    }
     // cette méthode permet de recupérer les données les plus récentes (du jour le plus récent)
-    public function getLatestData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true)
-    {
+    public function getLatestData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
         if(!empty($date)) {
             $sql = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
             $sql .=  ' WHERE ' . $date . ' = (SELECT MAX(' . $date . ') FROM ' . $this->table . ')';
+            $sql .= ' AND ';
 
             return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
         }
@@ -332,15 +358,14 @@ class MY_Model extends CI_Model
         }
         else {
             // On passe les variabes AND X = (A OR B)
-            $sql .= ' AND ';
             $sql .= ' (';
             foreach($whereAnd as $key => $value) {
-                $sql . = $key . '=' . $this->db->escape($value) .  'OR';
+                $sql .= $key . ' = ' . $this->db->escape($value) .  ' OR ';
             }
             // On passe les variables AND Y = (A OR B)
             $sql .= ') AND (';
             foreach($whereOr as $key => $value) {
-                $sql .= $key . '=' . $this->db->escape($value) . 'OR';
+                $sql .= $key . ' = ' . $this->db->escape($value) . ' OR ';
             }
             $sql .= ')';
         }
