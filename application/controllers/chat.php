@@ -48,32 +48,23 @@ class Chat extends CI_Controller
                                                               array('sender'   => $contactPseudo, 'sender' => $this->session->userdata('userName')),
                                                               array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
                                                               'id', null, false);
-            // On envoie une requete SQL dans table chatRoom pour les mettre en OLD POST +
-            // On envoie une requete SQL dans table membres pour update messageStatus en OLD POST
-            $this->updateMessageStatus($contactPseudo, 'oldPost', $this->session->userdata('userName'), 'requestedFromThis');
-
-            // Ensuite on envoie la réponse
+            // Si la conversation est vide on envoie une message EMPTY
             if(empty($conversation) || is_bool($conversation) || $conversation == null) {
                 $data = array('messagesList' => 'empty', 'status' => 'showConversation');
                 $reponse[0] = $data;
                 echo json_encode($reponse);
                 return false;
             }
+            // Si la conversation n'est pas vide, on envoie une requete SQL dans table chatRoom pour mettre les messages en OLD POST
+                // WHERE receiver = session(userName) AND sender = $contactPseudo (seulement ceux que nous avons recus)
+            $this->updateMessageStatus($contactPseudo, 'oldPost');
+
+            // Enfin on envoie la réponse (conversation)
             $data = array('messagesList' => 'notEmpty', 'status' => 'showConversation');
             $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
             echo json_encode($response);
             return true;
             // END
-
-            /* Creation d'une branche experimentale pour mise à jour =>
-                when POST  => update table messageStatus => insert new entrey sender + receiver + NEW
-                when read => update table messageStatus instead of membres where sender = sender and receiver = receiver
-                    set status OLD.
-
-                    this will allow to have several sentO people */
-
-
-                    // this should appear on experimental branch now
 
         }
         elseif($conversationType == 'previousConversation') {
@@ -117,8 +108,7 @@ class Chat extends CI_Controller
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX Ajoute un message - POST via formulaire ---------------------------------------------------------------------------------------------------
     public function postNewMessage() {
-        // On insère le message POST avec status 'newPost' dans messages +
-        // Mise à jour de membres : set NewPost et sentTo (POST - receiverPseudo) WHERE pseudo = sender (session[userName])
+        // On insère le message POST avec status 'newPost' dans messages
         $heurePub = date("H:i");
         $this->chatManager->addEntry(     array('sender'         => $this->session->userdata('userName'),
                                                 'receiver'       => $this->input->post('receiverPseudo'),
@@ -126,10 +116,6 @@ class Chat extends CI_Controller
                                                 'messageStatus'  => 'newPost'),
                                           array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
                                                 'senderHeurePub' => $heurePub));
-        $this->memberManager->updateEntry(array('pseudo'         => $this->session->userdata('userName')),
-                                          array('messageStatus'  => 'newPost',
-                                                'sentTo'         => $this->input->post('receiverPseudo')));
-
         // Ensuite on envoie la réponse AJAX
         $response  = [array('status'         => 'postMessage'),
                       array('senderMessage'  => htmlspecialchars($this->input->post('senderMessage')),
@@ -158,39 +144,15 @@ class Chat extends CI_Controller
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
-    public function updateMessageStatus($senderPseudo, $messageStatus, $receiverPseudo = null, $requestMethod = 'Ajax') {
-        if($requestMethod == 'Ajax') {
-            // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
-                // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-                // On modifie table membres messageStatus, set oldPost Where pseudo = $senderPseudo ////////
-            // Si $receiverPseudo = null => le message est destiné à session[userName]
-            if($receiverPseudo == null) {
-                $receveirPseudo = $this->session->userdata('userName');
-            }
-            $this->chatmanager->updateEntry(  array('receiver'      => $receiverPseudo,
-                                                    'sender'        => $senderPseudo),
-                                              array('messageStatus' => $messageStatus));
-            $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo,
-                                                    'sentTo'        => $receiverPseudo),
-                                              array('messageStatus' => $messageStatus));
-        }
-        else {
-            // Cette partie concerne principalement la méthode loadConversation ('showConvesation')
-            // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            $this->chatManager->setEntries(  array('sender'        => $senderPseudo,
-                                                   'sender'        => $receiverPseudo),
-                                             array('receiver'      => $receiverPseudo,
-                                                   'receiver'      => $senderPseudo),
-                                             array('messageStatus' => $messageStatus));
-            // SET messagestatus = oldPost WHERE (pseudo = $pseudo OR session(user)) AND (sentTo = $pseudo OR session(user))
-            $this->memberManager->setEntries(array('pseudo'        => $senderPseudo,
-                                                   'pseudo'        => $receiverPseudo),
-                                             array('sentTo'        => $receiverPseudo,
-                                                   'sentTo'        => $senderPseudo),
-                                             array('messageStatus' => $messageStatus));
-        }
-        // END
-    }//-----------------------------------------------------------------------------------------------------------------------------
+    public function updateMessageStatus($senderPseudo, $messageStatus) {
+        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
+        // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
+        $this->chatManager->updateEntry(  array('receiver'      => $receveirPseudo = $this->session->userdata('userName');,
+                                                'sender'        => $senderPseudo),
+                                          array('messageStatus' => $messageStatus));
+    }
+    // END
+    //-----------------------------------------------------------------------------------------------------------------------------
     // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
     // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function deleteConversation() {
