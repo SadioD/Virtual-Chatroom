@@ -72,6 +72,9 @@ class Chat extends CI_Controller
 
                     this will allow to have several sentO people */
 
+
+                    // this should appear on experimental branch now
+
         }
         elseif($conversationType == 'previousConversation') {
 
