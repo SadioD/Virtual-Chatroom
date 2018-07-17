@@ -74,27 +74,27 @@ $(function(){
                 {
                     // Le bouton precedent
                     var conversation = '<div class="row bouttonPrecedent"><div class="col-sm-12 text-center">';
-                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage" class="' + response[1].datePub + '">';
+                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage" class="' + response[2].datePub + '">';
                     conversation +='<i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i></a></div></div>';
 
                     // Les messages
-                    for(var i = 1, c = response.length; i < c; i++) {
-                        if(response[i].receiverMessage != null) {
+                    for(var i = 0, c = response.length; i < c; i++) {
+                        if(response[1][i].receiverMessage != null) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
-                            conversation +='<div class="receiver"><div class="message-text">' + response[i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[i].receiverHeurePub + '</span>';
+                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
                             conversation +='</div></div></div>';
                         }
-                        if(response[i].senderMessage != null) {
+                        if(response[1][i].senderMessage != null) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
-                            conversation +='<div class="sender"><div class="message-text">' + response[i].senderMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[i].senderHeurePub + '</span>';
+                            conversation +='<div class="sender"><div class="message-text">' + response[1][i].senderMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
                     // Le bouton suivant
                     conversation +='<div class="row bouttonSuivant"><div class="col-sm-12 text-center">';
-                    conversation +='<a href = "" title = "Show Next Messages" id="nextMessage" class="' + response[1].datePub + '">';
+                    conversation +='<a href = "" title = "Show Next Messages" id="nextMessage" class="' + response[2].datePub + '">';
                     conversation +='<i class="fa fa-chevron-circle-down fa-2x" aria-hidden="true"></i></a></div></div>';
                 }
                 else if(responseStatus == 'postMessage')
@@ -295,7 +295,7 @@ $(function(){
                 if(response[0].status == 'showConversation') {
                     manager.settings.setElementActive(element);
                     manager.settings.setNewMessageIcone('OFF', element);
-                    manager.settings.setChatRoomActive('click', response[1].datePub, element);
+                    manager.settings.setChatRoomActive('click', response[2].datePub);
                 }
                 return true;
             }
