@@ -276,7 +276,7 @@ $(function(){
                             var conversation = manager.settings.createHTMLElements(response, 'loadNewMessages');
                             if(conversation != null)
                             {
-                                // On affiche les new Messages et on send Ajax pour update messageStatus 'Read' (table messages)
+                                // On affiche les new Messages et on send Ajax pour update messageStatus 'oldPost' (table messages)
                                 // Paramètres envoyés : pseudo du contact qui a send le message (depuis left side) + messageStatus (oldPost)
                                 $(conversation).insertBefore($('#myAnchor'));
                                 manager.sendAjaxRequest('none', 'GET', 'chat/updateMessageStatus/' . $(this).find('.name-meta').text() . '/oldPost');
