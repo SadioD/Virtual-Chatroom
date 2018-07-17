@@ -44,23 +44,34 @@ class Chat extends CI_Controller
         if ($conversationType == 'showConversation') {
             // On recupère les messages de la liste
                 // SELECT WHERE date = MAX(date) AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            // On envoie une requete SQL dans table chatRoom pour les mettre en READ
-                // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            // On envoie une requete SQL dans table membres pour update le membre
-                // SET messagestatus = oldPost WHERE (pseudo = $pseudo OR session(user)) AND (sentTo = $pseudo OR session(user))
             $conversation = $this->chatManager->getLatestData('*', 'datePub',
                                                               array('sender'   => $contactPseudo, 'sender' => $this->session->userdata('userName')),
                                                               array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
                                                               'id', null, false);
+            // On envoie une requete SQL dans table chatRoom pour les mettre en OLD POST +
+            // On envoie une requete SQL dans table membres pour update messageStatus en OLD POST
+            $this->updateMessageStatus($contactPseudo, 'oldPost', $this->session->userdata('userName'), 'requestedFromThis');
 
+            // Ensuite on envoie la réponse
+            if(empty($conversation) || is_bool($conversation) || $conversation == null) {
+                $data = array('messagesList' => 'empty', 'status' => 'showConversation');
+                $reponse[0] = $data;
+                echo json_encode($reponse);
+                return false;
+            }
+            $data = array('messagesList' => 'notEmpty', 'status' => 'showConversation');
+            $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
+            echo json_encode($response);
+            return true;
+            // END
 
-        // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            $this->updateMessageStatus();
-            
+            /* Creation d'une branche experimentale pour mise à jour =>
+                when POST  => update table messageStatus => insert new entrey sender + receiver + NEW
+                when read => update table messageStatus instead of membres where sender = sender and receiver = receiver
+                    set status OLD.
 
+                    this will allow to have several sentO people */
 
-                // response[0].status , response[0].photo  et response[0].du receiver (il faut rajouter response.photo à
-                    // à l'index [0] pour afficher la photo  )
         }
         elseif($conversationType == 'previousConversation') {
 
@@ -149,7 +160,6 @@ class Chat extends CI_Controller
             // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
                 // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
                 // On modifie table membres messageStatus, set oldPost Where pseudo = $senderPseudo ////////
-
             // Si $receiverPseudo = null => le message est destiné à session[userName]
             if($receiverPseudo == null) {
                 $receveirPseudo = $this->session->userdata('userName');
@@ -157,11 +167,24 @@ class Chat extends CI_Controller
             $this->chatmanager->updateEntry(  array('receiver'      => $receiverPseudo,
                                                     'sender'        => $senderPseudo),
                                               array('messageStatus' => $messageStatus));
-            $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo),
+            $this->memberManager->updateEntry(array('pseudo'        => $senderPseudo,
+                                                    'sentTo'        => $receiverPseudo),
                                               array('messageStatus' => $messageStatus));
         }
         else {
-            // Ici le code pour la méthode loadConversation ('showCOnvesation') - update messageStatus in membres et messages
+            // Cette partie concerne principalement la méthode loadConversation ('showConvesation')
+            // SET messageStatus = 'oldPost' WHERE (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            $this->chatManager->setEntries(  array('sender'        => $senderPseudo,
+                                                   'sender'        => $receiverPseudo),
+                                             array('receiver'      => $receiverPseudo,
+                                                   'receiver'      => $senderPseudo),
+                                             array('messageStatus' => $messageStatus));
+            // SET messagestatus = oldPost WHERE (pseudo = $pseudo OR session(user)) AND (sentTo = $pseudo OR session(user))
+            $this->memberManager->setEntries(array('pseudo'        => $senderPseudo,
+                                                   'pseudo'        => $receiverPseudo),
+                                             array('sentTo'        => $receiverPseudo,
+                                                   'sentTo'        => $senderPseudo),
+                                             array('messageStatus' => $messageStatus));
         }
         // END
     }//-----------------------------------------------------------------------------------------------------------------------------
