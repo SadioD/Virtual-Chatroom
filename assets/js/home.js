@@ -78,16 +78,33 @@ $(function(){
                     conversation +='<i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i></a></div></div>';
 
                     // Les messages
-                    for(var i = 0, c = response.length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null) {
+                    for(var i = 0, c = response[1].length; i < c; i++)
+                    {
+                        // Cas des messages où receiver = session(userName) => sent by $contact
+                        if(response[1][i].receiverMessage != null && response[1][i].receiver != $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
                             conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
                             conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
                             conversation +='</div></div></div>';
                         }
-                        if(response[1][i].senderMessage != null) {
+                        // Cas des messages où receiver = $contact => sent by session(userName)
+                        if(response[1][i].receiverMessage != null && response[1][i].receiver == $('#receiverHeading').text()) {
+                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
+                            conversation +='<div class="sender"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
+                            conversation +='</div></div></div>';
+                        }
+                        // Cas des messages où sender = session(userName) => received by $contact
+                        if(response[1][i].senderMessage != null && response[1][i].sender != $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
                             conversation +='<div class="sender"><div class="message-text">' + response[1][i].senderMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
+                            conversation +='</div></div></div>';
+                        }
+                        // Cas des messages où sender = $contact => received by session(userName)
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
+                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
+                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
                             conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
                             conversation +='</div></div></div>';
                         }
@@ -111,10 +128,10 @@ $(function(){
                     // Et si le pseudoReceveur de la liste == pseudo figurant sur l'element actif = on crée élement HTML
                     var conversation = null;
                     for(var i = 0, c = response[1].length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null && response[1][i].receiverPseudo == $('#receiverHeading').text()) {
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
-                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
+                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
@@ -125,7 +142,7 @@ $(function(){
             setNewMessageIcone: function(status, element, response = null) {
                 if(status == 'ON') {
                     for(var i = 0, c = response.length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null && response[1][i].receiver == $(element).find('.name-meta').text()) {
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $(element).find('.name-meta').text()) {
                             $(element).find('.messageIcone').show();
                         }
                     }
