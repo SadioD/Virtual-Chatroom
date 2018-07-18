@@ -1,5 +1,5 @@
-// Avant que le DOM ne soit chargé on caché le back button
-$('#backButton').hide();
+// Avant que le DOM ne soit chargé on cache le back button et l'icone des nouveaux messages (contact list)
+$('#backButton, .messageIcone').hide();
 
 // ENsuite on exécute le reste du code quand le DOM sera chargé
 $(function(){
@@ -74,38 +74,24 @@ $(function(){
                 {
                     // Le bouton precedent
                     var conversation = '<div class="row bouttonPrecedent"><div class="col-sm-12 text-center">';
-                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage" class="' + response[2].datePub + '">';
+                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage">';
                     conversation +='<i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i></a></div></div>';
 
                     // Les messages
                     for(var i = 0, c = response[1].length; i < c; i++)
                     {
-                        // Cas des messages où receiver = session(userName) => sent by $contact
-                        if(response[1][i].receiverMessage != null && response[1][i].receiver != $('#receiverHeading').text()) {
-                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
-                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
-                            conversation +='</div></div></div>';
-                        }
-                        // Cas des messages où receiver = $contact => sent by session(userName)
-                        if(response[1][i].receiverMessage != null && response[1][i].receiver == $('#receiverHeading').text()) {
-                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
-                            conversation +='<div class="sender"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
-                            conversation +='</div></div></div>';
-                        }
                         // Cas des messages où sender = session(userName) => received by $contact
                         if(response[1][i].senderMessage != null && response[1][i].sender != $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
                             conversation +='<div class="sender"><div class="message-text">' + response[1][i].senderMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
                             conversation +='</div></div></div>';
                         }
                         // Cas des messages où sender = $contact => received by session(userName)
                         if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
                             conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
@@ -131,7 +117,7 @@ $(function(){
                         if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
                             conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
@@ -261,7 +247,7 @@ $(function(){
                     }
                     // On vide le chatRoom et on met à jour la date
                     manager.settings.emptyChatRoom();
-                    $('.message-date').text(response[1].datePub);
+                    $('.message-date').text(response[2].datePub);
                 }
                 // Cas - Affichage des messages suivants (quand on click sur Boutton suivant)
                 // S'il n'y a pas de messages à afficher on supprime le boutton suivant
@@ -273,7 +259,7 @@ $(function(){
                     }
                     // On vide le chatRoom et on met à jour la date
                     manager.settings.emptyChatRoom();
-                    $('.message-date').text(response[1].datePub);
+                    $('.message-date').text(response[2].datePub);
                 }
                 // Cas - Ajout message conversation - POST via Formulaire
                 else if(response[0].status == 'postMessage') {

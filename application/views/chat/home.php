@@ -41,9 +41,7 @@
                                 <?php } else { ?>
                                     <span class="time-meta"><i class="fa fa-circle-o" aria-hidden="true"></i> offline</span>
                                 <?php } ?>
-                                <?php if($contact->messageStatus == 'newPost' && $contact->sentTo == $this->session->userdata('userName')) { ?>
-                                    <span class="time-meta messageIcone"><i class="fa fa-commenting" aria-hidden="true"></i> new</span>
-                                <?php } ?>
+                                <span class="time-meta messageIcone"><i class="fa fa-commenting" aria-hidden="true"></i> new</span>
                             </div>
                             <div class="col-xs-4  pull-right sideBar-time">
                                 <span class = "openButton"><i class="fa fa-comments" aria-hidden="true"></i>|</span>
@@ -64,11 +62,11 @@
         <!-- avatar du destinataire -->
         <div class="col-sm-1 col-xs-2 heading-avatar text-center">
           <div class="heading-avatar-icon">
-            <img src="https://bootdey.com/img/Content/avatar/avatar6.png" id = "chatHeadingAvatar" />
+            <img src="" id = "chatHeadingAvatar" />
           </div>
         </div>
         <div class="col-sm-11 col-xs-10 heading-name">
-          <a class="heading-name-meta" id = "receiverHeading">John Doe</a>
+          <a class="heading-name-meta" id = "receiverHeading"></a>
           <i class="fa fa-arrow-left pull-right" aria-hidden="true" id = "backButton"></i>
         </div>
       </div>
@@ -76,21 +74,19 @@
       <div class="row message" id ="conversation">
         <div class="row message-previous" id = "messagePrevious">
           <div class="col-sm-12 previous">
-            <a class ="message-date">
-                Posté le 12-02-2018
-            </a>
+            <a class ="message-date"></a>
           </div>
         </div>
         <!-- Chargement messages Précédents -->
-        <div class="row bouttonPrecedent">
+        <!--<div class="row bouttonPrecedent">
           <div class="col-sm-12 text-center">
             <a href = "" title = "Show Previous Messages" id = "bouttonPrecedent">
                 <i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i>
             </a>
           </div>
         </div>
-        <!-- Messages List -->
-        <div class="row message-body">
+        <!- Messages List -->
+        <!--<div class="row message-body">
           <div class="col-sm-12 message-main-receiver">
             <div class="receiver">
               <div class="message-text">
@@ -115,12 +111,6 @@
           </div>
         </div>
 
-
-
-
-
-
-
         <div class="row message-body">
           <div class="col-sm-12 message-main-receiver">
             <div class="receiver">
@@ -217,43 +207,18 @@
             </div>
           </div>
         </div>
-        <!-- Chargement messages Suivants -->
-        <div class="row bouttonSuivant">
+        <!- Chargement messages Suivants -->
+        <!--<div class="row bouttonSuivant">
           <div class="col-sm-12 text-center">
             <a href = "" title = "Show Next Messages" id = "bouttonSuivant">
                 <i class="fa fa-chevron-circle-down fa-2x" aria-hidden="true"></i>
             </a>
           </div>
-        </div>
+      </div>-->
 
         <span id = "myAnchor" tabindex = -1></span>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       </div>
-      <!-- Formulaire envoi messaie -->
+      <!-- Formulaire pour poset un message -->
       <div class="row reply">
           <form id = "senderForm">
               <div class="col-sm-11 col-xs-11 reply-main">
