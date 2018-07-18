@@ -45,32 +45,25 @@ class Chat extends CI_Controller
             // On recupère les messages de la liste
                 // SELECT WHERE date = MAX(date) AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
             $conversation = $this->chatManager->getLatestData('*', 'datePub',
-                                                              array('sender'   => $contactPseudo, 'sender' => $this->session->userdata('userName')),
+                                                              array('sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')),
                                                               array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
                                                               'id', null, false);
-            // Si la conversation est vide on envoie une message EMPTY
-            if(empty($conversation) || is_bool($conversation) || $conversation == null) {
-                $data = array('messagesList' => 'empty', 'status' => 'showConversation');
-                $reponse[0] = $data;
-                echo json_encode($reponse);
-                return false;
-            }
-            // Si la conversation n'est pas vide, on envoie une requete SQL dans table chatRoom pour mettre les messages en OLD POST
-                // WHERE receiver = session(userName) AND sender = $contactPseudo (seulement ceux que nous avons recus)
-            $this->updateMessageStatus($contactPseudo, 'oldPost');
-
-            // Enfin on envoie la réponse (conversation)
-            $data = array('messagesList' => 'notEmpty', 'status' => 'showConversation');
-            $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
-            echo json_encode($response);
-            return true;
+            // On envoie la réponse
+            $this->sendResponse($conversation, 'showConversation', $contactPseudo);
             // END
-
         }
-        elseif($conversationType == 'previousConversation') {
-
+        elseif($conversationType == 'previousMessages') {
+            // On recupère les messaes de la liste
+            // WHERE date = date - 1 AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            $conversation = $this->chatManager->getPreviousData('*', $conversationDate,
+                                                                ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
+                                                                ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
+                                                                'id', null, false);
+            // On envoie la réponse
+            $this->sendResponse($conversation, 'previousMessages');
+            // END
         }
-        elseif($conversationType == 'nextConversation') {
+        elseif($conversationType == 'nextMessages') {
 
         }
 
@@ -78,20 +71,10 @@ class Chat extends CI_Controller
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
     // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'notRead'
     public function loadNewMessage() {
-        $newMessages = $this->chatManager->getData('*', array('receiver' => $thi->session->userdata('userName'), 'messageStatus' => 'newPost'), null, null, 'senderHeurePub');
-
-        // S'il n'y a pas de nouveaux messages on crée la variable $messagesList = 'empty'
-        if(empty($newMessages) || is_bool($newMessages) || $newMessages == null) {
-            $data = array('messagesList' => 'empty', 'status' => 'loadNewMessages');
-            $reponse[0] = $data;
-            echo json_encode($reponse);
-            return false;
-        }
-        // if isset $newMessage => on les envoie en reponse AJAX
-        $data = array('messagesList' => 'notEmpty', 'status' => 'loadNewMessages');
-        $reponse = [$data, $newMessages];
-        echo json_encode($response);
-        return true;
+        $newMessages = $this->chatManager->getData('*', array('receiver' => $thi->session->userdata('userName'),
+                                                              'messageStatus' => 'newPost'), null, null, 'senderHeurePub');
+        // On envoie la réponse
+        $this->sendResponse($newMessages, 'loadNewMessages');
         // END
 
         /* On charge le messae de tout le monde, where receiver = session[userName] AND message status = 'notRead'
@@ -173,7 +156,31 @@ class Chat extends CI_Controller
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Fonctions Internes -----------------------------------------------------------------------------------------------------------------------------------------------
-    protected function anonyme() {
+    protected function sendResponse($conversation, $conversationType, $contactPseudo = null)
+    {
+        // Si la conversation est vide on envoie une message EMPTY
+        if(empty($conversation) || is_bool($conversation) || $conversation == null) {
+            $data = array('messagesList' => 'empty', 'status' => $conversationType);
+            $reponse[0] = $data;
+            echo json_encode($reponse);
+            return false;
+        }
+        // CAS showConversation
+        // Si la conversation n'est pas vide, on envoie une requete SQL dans table chatRoom pour mettre les messages en OLD POST
+        // WHERE receiver = session(userName) AND sender = $contactPseudo (seulement ceux que nous avons recus)
+        if($conversationType == 'showConversation') { $this->updateMessageStatus($contactPseudo, 'oldPost'); }
+
+        // Enfin on envoie la réponse (conversation)
+        $data = array('messagesList' => 'notEmpty', 'status' => $conversationType);
+        if($conversationType == 'previousMessages' || $conversationType == 'showConversation' || $conversationType == 'nextMessages') {
+            $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
+        }
+        if($conversationType == 'loadNewMessage') {
+            $response = [$data, $conversation];
+        }
+        echo json_encode($response);
+        return true;
+
 
     }
     public function test() {
