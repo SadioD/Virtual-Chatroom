@@ -151,7 +151,7 @@ class Chat extends CI_Controller
                     Requete
                     select * ; dans html
                     pour chaque element
-                        if(status = newPost et	sentTo = session[pseudo]) => show icone New */
+                        if(status = newPost et	sentTo = session[pseudo])  => show icone New */
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
