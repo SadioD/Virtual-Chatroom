@@ -56,20 +56,28 @@ class Chat extends CI_Controller
             // On recupère les messaes de la liste
             // WHERE date = date - 1 AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
             $conversation = $this->chatManager->getPreviousData('*', $conversationDate,
-                                                                ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
-                                                                ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
+                                                               ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
+                                                               ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
                                                                 'id', null, false);
             // On envoie la réponse
             $this->sendResponse($conversation, 'previousMessages');
             // END
         }
         elseif($conversationType == 'nextMessages') {
-
+            // On recupère les messaes de la liste
+            // WHERE date = date + 1 AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            $conversation = $this->chatManager->getNextData('*', $conversationDate,
+                                                           ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
+                                                           ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
+                                                            'id', null, false);
+            // On envoie la réponse
+            $this->sendResponse($conversation, 'nextMessages');
+            // END
         }
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
-    // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'notRead'
+    // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'newPost'
     public function loadNewMessage() {
         $newMessages = $this->chatManager->getData('*', array('receiver' => $thi->session->userdata('userName'),
                                                               'messageStatus' => 'newPost'), null, null, 'senderHeurePub');
@@ -130,7 +138,7 @@ class Chat extends CI_Controller
     public function updateMessageStatus($senderPseudo, $messageStatus) {
         // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
         // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-        $this->chatManager->updateEntry(  array('receiver'      => $receveirPseudo = $this->session->userdata('userName');,
+        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName');,
                                                 'sender'        => $senderPseudo),
                                           array('messageStatus' => $messageStatus));
     }
@@ -180,8 +188,6 @@ class Chat extends CI_Controller
         }
         echo json_encode($response);
         return true;
-
-
     }
     public function test() {
         /*$this->layout->includeJS('test');
