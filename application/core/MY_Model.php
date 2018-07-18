@@ -306,13 +306,13 @@ class MY_Model extends CI_Model
         return false;
     }
     // Permet de récupérer les données de la date suivant la date entrée (WHERE date = date + 1)
-    public function getNextData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null) {
+    public function getNextData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
         if(!empty($date)) {
             $sql  = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
             $sql .= ' WHERE ' . $date . ' = CAST(' . $date . ' AS DATE) + 1';
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc);
+            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
