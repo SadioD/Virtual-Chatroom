@@ -70,7 +70,7 @@ class Chat extends CI_Controller
                 when read => update table messageStatus instead of membres where sender = sender and receiver = receiver
                     set status OLD.
 
-                    this will allow to have several sentO people */
+                    this will allow to have several sentTo people */
 
         }
         elseif($conversationType == 'previousConversation') {
