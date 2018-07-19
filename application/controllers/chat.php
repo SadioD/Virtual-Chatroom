@@ -26,6 +26,8 @@ class Chat extends CI_Controller
         // controler user
         $this->session->setAuthentificated(true);
         $this->session->set_userdata('userName', 'Ahmed');
+        $this->session->set_userdata('photo', 'avatar_homme.png');
+
         echo 'Page de connexion , if online access true, green boutton else gray boutton';
 
         // if sexe = home => photo = https://bootdey.com/img/Content/avatar/avatar3.png (cherchez photo homme et femme)
@@ -33,8 +35,13 @@ class Chat extends CI_Controller
     // La page de Chat  ---------------------------------------------------------------------------------------------------------------------
     public function home() {
         if($this->session->isAuthentificated()) {
-            $contactList = $this->membersManager->getAllDataBut('*', ['pseudo' => $this->session->userdata('userName')], null, null, 'pseudo');
-            $this->layout->showView('chat/room', array('contactList' => $contactList));
+            $contactList = $this->memberManager->getAllDataBut('*', ['pseudo' => $this->session->userdata('userName')], null, null, 'pseudo');
+            $this->layout->showView('chat/home', array('contactList' => $contactList));
+            // $contactList = $this->memberManager->getData();
+            //var_dump($contactList->result());
+            //echo $this->session->userdata('userName');
+
+
         }
         else {
             redirect(site_url('user/connexion'));
@@ -139,7 +146,7 @@ class Chat extends CI_Controller
     public function updateMessageStatus($senderPseudo, $messageStatus) {
         // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
         // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName');,
+        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
                                                 'sender'        => $senderPseudo),
                                           array('messageStatus' => $messageStatus));
     }

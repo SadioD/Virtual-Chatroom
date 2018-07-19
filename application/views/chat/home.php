@@ -25,7 +25,7 @@
         <!-- Liste Contact -->
         <div class="row sideBar">
             <form id = "deleteForm">
-            <?php foreach($contactList as $contact) { ?>
+            <?php foreach($contactList->result() as $contact) { ?>
                 <div class="row sideBar-body">
                     <div class="col-sm-3 col-xs-3 sideBar-avatar">
                         <div class="avatar-icon">

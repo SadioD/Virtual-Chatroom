@@ -1,5 +1,5 @@
-// Avant que le DOM ne soit chargé on cache le back button et l'icone des nouveaux messages (contact list)
-$('#backButton, .messageIcone').hide();
+// Avant que le DOM ne soit chargé on cache le back button + l'icone des nouveaux messages (contact list) + la photo Avatar zone de chat
+$('#backButton, #chatHeadingAvatar, .messageIcone').hide();
 
 // ENsuite on exécute le reste du code quand le DOM sera chargé
 $(function(){
@@ -228,7 +228,7 @@ $(function(){
                 // On met à jour la photo et le pseudo du heading dans le chatRoom
                 // S'il n'y a pas de messages envoyés et reçus on affiche la zone vide avec le message say hello!
                 if(response[0].status == 'showConversation') {
-                    $('#chatHeadingAvatar').attr('src', $(element).find('img').attr('src')); // mise à jour photo Chatromm
+                    $('#chatHeadingAvatar').attr('src', $(element).find('img').attr('src')).show(); // mise à jour photo Chatromm
                     $('#receiverHeading').text($(element).find('.name-meta').text());        // mise à jour pseudo Chatromm
                     manager.settings.emptyChatRoom();
 
