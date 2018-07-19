@@ -265,13 +265,13 @@ class MY_Model extends CI_Model
             // On passe les valeures échapées
             if(!empty($escapedData)) {
                 foreach($escapedData as $key => $value) {
-                    $sql .= $key . ' = ' . $this->db->escape($value) . ', ';
+                    $sql .= $key . ' = "' . $this->db->escape($value) . '", ';
                 }
             }
             // On passe les valeurs non échapées
             if(!empty($notEscapedData)) {
                 foreach($notEscapedData as $key => $value) {
-                    $sql .= $key . ' = ' . $value . ', ';
+                    $sql .= $key . ' = "' . $value . '", ';
                 }
             }
             // On retire la dernière virgule pour éviter toute erreur de syntaxe
@@ -279,6 +279,21 @@ class MY_Model extends CI_Model
             $sql .= ' WHERE';
 
             return $this->processQuery($sql, $whereAnd, $whereOr, null, null, false);
+        }
+        return false;
+    }
+    // cette méthode permet de recupérer toutes les données WHERE x != x
+    public function getAllDataBut($select = '*', $exception = array(), $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null) {
+        if(!empty($exception)) {
+            $sql = '';
+            $sql .= 'SELECT ' . $select . ' FROM ' . $this->table . ' WHERE ';
+
+            foreach($exception as $key => $value) {
+                $sql .= $key ' != "' . $this->db->escape($date) . '" AND ';
+            }
+            $sql = substr($sql, 0, -4);
+
+            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc);
         }
         return false;
     }
@@ -320,7 +335,7 @@ class MY_Model extends CI_Model
     public function deleteEntries($key, $value, $whereOr = array(), $quickProcess = true) {
         if(!empty($key) && !empty($value) && !empty($whereOr)) {
             $sql  = '';
-            $sql .= 'DELETE FROM ' . $this->table . ' WHERE ' . $key . ' = ' . $this->db->escape($value);
+            $sql .= 'DELETE FROM ' . $this->table . ' WHERE ' . $key . ' = "' . $this->db->escape($value) . '"';
 
             $this->processQuery($sql, null, $whereOr, null, null, $quickProcess);
         }
@@ -347,12 +362,12 @@ class MY_Model extends CI_Model
         if($quickProcess == true) {
             if(!empty($whereAnd)) {
                 foreach($whereAnd as $key => $value) {
-                    $sql .= ' AND ' . $key . ' = ' . $this->db->escape($value);
+                    $sql .= ' AND ' . $key . ' = "' . $this->db->escape($value) . '"';
                 }
             }
             if(!empty($whereOr)) {
                 foreach($whereOr as $key => $value) {
-                    $sql .= ' OR ' . $key . ' = ' . $this->db->escape($value);
+                    $sql .= ' OR ' . $key . ' = "' . $this->db->escape($value) . '"';
                 }
             }
         }
@@ -360,12 +375,12 @@ class MY_Model extends CI_Model
             // On passe les variabes AND X = (A OR B)
             $sql .= ' (';
             foreach($whereAnd as $key => $value) {
-                $sql .= $key . ' = ' . $this->db->escape($value) .  ' OR ';
+                $sql .= $key . ' = "' . $this->db->escape($value) .  '" OR ';
             }
             // On passe les variables AND Y = (A OR B)
             $sql .= ') AND (';
             foreach($whereOr as $key => $value) {
-                $sql .= $key . ' = ' . $this->db->escape($value) . ' OR ';
+                $sql .= $key . ' = "' . $this->db->escape($value) . '" OR ';
             }
             $sql .= ')';
         }

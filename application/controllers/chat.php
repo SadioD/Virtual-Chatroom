@@ -25,6 +25,7 @@ class Chat extends CI_Controller
     {
         // controler user
         $this->session->setAuthentificated(true);
+        $this->session->set_userdata('userName', 'Ahmed');
         echo 'Page de connexion , if online access true, green boutton else gray boutton';
 
         // if sexe = home => photo = https://bootdey.com/img/Content/avatar/avatar3.png (cherchez photo homme et femme)
@@ -32,7 +33,7 @@ class Chat extends CI_Controller
     // La page de Chat  ---------------------------------------------------------------------------------------------------------------------
     public function home() {
         if($this->session->isAuthentificated()) {
-            $contactList = $this->membersManager->getData('*', array(), null, null, 'pseudo');
+            $contactList = $this->membersManager->getAllDataBut('*', ['pseudo' => $this->session->userdata('userName')], null, null, 'pseudo');
             $this->layout->showView('chat/room', array('contactList' => $contactList));
         }
         else {
