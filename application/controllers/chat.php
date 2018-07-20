@@ -122,9 +122,9 @@ class Chat extends CI_Controller
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     //Gère les requetes automatic recues par Ajax (toutes les 30s) ---------------------------------------------------------------------------------------------------
-    protected function ajaxAutomaticRequests($requestStatus, $contactPseudo = null) {
-        if(    $requestStatus == 'loadNewMessage') $this->loadNewMessage();
-        elseif($requestStatus == 'checkOnlineStatus')   $this->checkOnlineStatus($contactPseudo);
+    public function ajaxAutomaticRequests($requestStatus) {
+        if(    $requestStatus == 'loadNewMessage')      $this->loadNewMessage();
+        elseif($requestStatus == 'checkOnlineStatus')   $this->checkOnlineStatus();
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
     public function updateMessageStatus($senderPseudo, $messageStatus) {
@@ -170,12 +170,12 @@ class Chat extends CI_Controller
 
         // Enfin on envoie la réponse (conversation)
         $data = array('messagesList' => 'notEmpty', 'status' => $conversationType);
-        if($conversationType == 'previousMessages' || $conversationType == 'showConversation' || $conversationType == 'nextMessages') {
+        if(  $conversationType == 'previousMessages' || $conversationType == 'showConversation' || $conversationType == 'nextMessages') {
             $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
         }
-        elseif($conversationType == 'loadNewMessage')    { $response = [$data, $conversation]; }
-        elseif($conversationType == 'checkOnlineStatus') { $response    = array(['status' => 'checkOnlineStatus'], $contactList); }
-
+        elseif($conversationType == 'loadNewMessage' || $conversationType == 'checkOnlineStatus') {
+            $response = [$data, $conversation];
+        }
         echo json_encode($response);
         return true;
     }
@@ -210,10 +210,10 @@ class Chat extends CI_Controller
 
     }//-----------------------------------------------------------------------------------------------------------------------------
     // Permet de vérifier si les contacts sont connectés ---------------------------------------------------------------------------------------------------
-    protected function checkOnlineStatus($contactPseudo) {
+    protected function checkOnlineStatus() {
         // On vérifie si session(userName) est connecté
         if(!$this->session->isAuthentificated()) {
-            $this->memberManager->updateEntry(['pseudo' => $this->session->userdata('userName')], ['status' => 'offline']);
+            $this->memberManager->updateEntry(['pseudo' => $this->session->userdata('userName')], ['connexionStatus' => 'offline']);
         }
         // Ensuite on recupère la liste des contacts pour revérifier le statut (online/offline) et actualié le cercle vert/gris
         $contactList = $this->memberManager->getData();

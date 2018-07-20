@@ -1,7 +1,7 @@
 // Avant que le DOM ne soit chargé on cache le back button + l'icone des nouveaux messages (contact list) + la photo Avatar zone de chat
 $('#backButton, #chatHeadingAvatar, .messageIcone').hide();
 
-// ENsuite on exécute le reste du code quand le DOM sera chargé
+// Ensuite on exécute le reste du code quand le DOM sera chargé
 $(function(){
     // CLIENT - Design : Afficher/ Faire disparaitre la liste de contacts et la zone de conversation ----------------------------------------------------------
     $('#backButton').on('click', showLeftSide);
@@ -135,6 +135,15 @@ $(function(){
                 }
                 else { $(element).find('.messageIcone').hide(); }
                 return true;
+            },
+            // Affiche ou HIDE l'icone de connexion en fonction du statut de connexion
+            setConnexionIcone: function(contact, element) {
+                if(contact.connexionStatus == 'online') {
+                    $(element).attr('class', 'fa fa-circle').text(' online');
+                }
+                else {
+                    $(element).attr('class', 'fa fa-circle-o').text(' offline');
+                }
             }
         },
         // Active les évènements
@@ -160,8 +169,14 @@ $(function(){
                     manager.sendAjaxRequest('contactSide', 'POST', 'chat/deleteConversation', null, dataToSend);
                 });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
-                // Paramètres envoyés : Aucun
-                setInterval("manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/loadNewMessages/', $('.sideBar-body').get());", 30000);
+                // Paramètres envoyés : requestStatus(loadNewMessage)
+                setInterval("manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessage', $('.sideBar-body').get());", 30000);
+                // Toutes les 5mn on envoie une requete pour vérifier si l'état de connexion des membres
+                // Paramètres envoyés : requestStatus(checkOnlineStatus)
+                setInterval("manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');", 300000);
+
+
+                ajaxAutomaticRequests($requestStatus, $contactPseudo = null)
             },
             chatRoomSide: function() {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation
@@ -219,6 +234,27 @@ $(function(){
                 // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression
                 if(response[0].status == 'suppression') {
                     alert('The selected messages have been deleted!');
+                    return true;
+                }
+                // Cas - Vérification status de connexion des membres
+                if(response[0].status == 'checkOnlineStatus') {
+                    // On met à jour le statut de connexion des Contact - LeftSide
+                    // On parcourt la liste des contacts (leftside) pour le faire
+                    $('.name-meta').each(function() {
+                        var contact = this;
+                        for(var i = 0, c = response[1].length; i < c; i++) {
+                            if($(contact).text() == response[1][i].pseudo) {
+                                manager.settings.setConnexionIcone(response[1][i], $(contact).next('.connexionStatus').children('i').get()[0]);
+                            }
+                        }
+                    });
+                    // On met à jour le statut de connexion de session(userName) - Zone ChatRoom
+                    // On parcourt la liste des contacts (reponse) pour le faire
+                    for(var i = 0, c = response[1].length; i < c; i++) {
+                        if($('#sideBarUserName').text() == response[1][i].pseudo) {
+                            manager.settings.setConnexionIcone(response[1][i], $('#connexionStatus').get()[0]);
+                        }
+                    }
                     return true;
                 }
                 return false;
