@@ -142,16 +142,11 @@ class Chat extends CI_Controller
                         if(status = newPost et	sentTo = session[pseudo]) => show icone New */
 
     }//-----------------------------------------------------------------------------------------------------------------------------
-    // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
-    public function updateMessageStatus($senderPseudo, $messageStatus) {
-        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
-        // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
-                                                'sender'        => $senderPseudo),
-                                          array('messageStatus' => $messageStatus));
-    }
-    // END
-    //-----------------------------------------------------------------------------------------------------------------------------
+    //Gère les requetes automatic recues par Ajax (toutes les 30s) ---------------------------------------------------------------------------------------------------
+    protected function ajaxAutomaticRequests($requestStatus, $contactPseudo = null, $messageStatus = null) {
+        if(    $requestStatus == 'updateMessageStatus') $this->updateMessageStatus($contactPseudo, $messageStatus);
+        elseif($requestStatus == 'checkOnlineStatus')   $this->checkOnlineStatus($contactPseudo);
+    }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
     // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function deleteConversation() {
@@ -172,8 +167,8 @@ class Chat extends CI_Controller
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Fonctions Internes -----------------------------------------------------------------------------------------------------------------------------------------------
-    protected function sendResponse($conversation, $conversationType, $contactPseudo = null)
-    {
+    // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST
+    protected function sendResponse($conversation, $conversationType, $contactPseudo = null) {
         // Si la conversation est vide on envoie une message EMPTY
         if(empty($conversation) || is_bool($conversation) || $conversation == null) {
             $data = array('messagesList' => 'empty', 'status' => $conversationType);
@@ -206,6 +201,26 @@ class Chat extends CI_Controller
         $myVar = [['pere' => 'douze', 'mere' => 'chou'], ['pere' => 'ayden', 'mere' => 'hope']];
         echo json_encode($myVar);
     }
+    // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
+    protected function updateMessageStatus($senderPseudo, $messageStatus) {
+        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
+        // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
+        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
+                                                'sender'        => $senderPseudo),
+                                          array('messageStatus' => $messageStatus));
+    }//---------------------------------------------------------------------------------------------------------------------------------------------------------
+    // Permet de vérifier si les contacts sont connectés ---------------------------------------------------------------------------------------------------
+    protected function checkOnlineStatus($contactPseudo) {
+        // On vérifie si session(userName) est connecté
+        if(!$this->session->isAuthentificated()) {
+            $this->memberManager->updateEntry(['pseudo' => $this->session->userdata('userName')], ['status' => 'offline']);
+        }
+        // Ensuite on recupère la liste des contacts pour revérifier le statut (online/offline) et actualié le cercle vert/gris
+        $contactList = $this->memberManager->getData();
+        $response    = array(['status' => 'checkOnlineStatus'], $contactList);
+        echo json_encode($response);
+
+    }//---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 }
