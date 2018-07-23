@@ -6,8 +6,7 @@
           <div class="col-sm-6 col-xs-6 heading-avatar">
             <div class="heading-avatar-icon">
               <img src="<?php echo base_url() . 'assets/images/' . $this->session->userdata('photo'); ?>">
-              <span id = "sideBarUserName"><?php echo $this->session->userdata('userName'); ?></span><br/>
-              <span class="time-meta"><i class="fa fa-circle" id = "connexionStatus" aria-hidden="true"></i> online</span>
+              <span id = "sideBarUserName"><i class="fa fa-circle" id = "connexionStatus" aria-hidden="true"></i> <?php echo $this->session->userdata('userName'); ?></span>
             </div>
           </div>
           <div class="col-sm-2 col-xs-2 heading-compose  pull-right">
@@ -36,7 +35,7 @@
                     <div class="col-sm-9 col-xs-9 sideBar-main">
                         <div class="row">
                             <div class="col-xs-8  sideBar-name">
-                                <span class="name-meta"><?php $contact->pseudo ?></span><br/>
+                                <span class="name-meta"><?php echo $contact->pseudo; ?></span><br/>
                                 <span class="time-meta connexionStatus">
                                     <i class="<?php echo $contact->connexionStatus == 'online' ? 'fa fa-circle' : 'fa fa-circle-o'; ?>" aria-hidden="true"></i>
                                     <?php echo $contact->connexionStatus == 'online' ? ' online' : ' offline'; ?>
@@ -239,6 +238,3 @@
     <img src = "<?php echo base_url() . 'assets/images/loading.gif' ;?> " />
 </div>
 <div id = "myOverlay"></div>
-
-<!-- surcouche destinée à masquer la zone de conversation lors du chargement de la page -->
-<div id = "surcouche"></div>

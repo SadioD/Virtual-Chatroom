@@ -46,9 +46,7 @@ $(function(){
             setChatRoomActive: function(calledEvent, datePub = null) {
                 if(calledEvent == 'click') {
                     // On Scroll la conversation en bas de page (dans zone de conversation)
-                    // Et on Retire la surcouche grise du ChatRoom et active le champ de Texte
                     $('#myAnchor').focus();
-                    $('#surcouche').hide();
                     $('#senderMessage').attr('disabled', false);
                 }
                 // Si la date est fournie, on actualise la date de la zone de texte
