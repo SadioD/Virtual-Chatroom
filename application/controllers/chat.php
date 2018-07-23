@@ -40,8 +40,6 @@ class Chat extends CI_Controller
             // $contactList = $this->memberManager->getData();
             //var_dump($contactList->result());
             //echo $this->session->userdata('userName');
-
-
         }
         else {
             redirect(site_url('user/connexion'));
@@ -57,7 +55,7 @@ class Chat extends CI_Controller
                                                               array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
                                                               'id', null, false);
             // On envoie la réponse
-            $this->sendResponse($conversation, 'showConversation', $contactPseudo);
+            $this->sendResponse($conversation->result(), 'showConversation', $contactPseudo);
             // END
         }
         elseif($conversationType == 'previousMessages') {
@@ -68,7 +66,7 @@ class Chat extends CI_Controller
                                                                ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
                                                                 'id', null, false);
             // On envoie la réponse
-            $this->sendResponse($conversation, 'previousMessages');
+            $this->sendResponse($conversation->result(), 'previousMessages');
             // END
         }
         elseif($conversationType == 'nextMessages') {
@@ -79,7 +77,7 @@ class Chat extends CI_Controller
                                                            ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
                                                             'id', null, false);
             // On envoie la réponse
-            $this->sendResponse($conversation, 'nextMessages');
+            $this->sendResponse($conversation->result(), 'nextMessages');
             // END
         }
 

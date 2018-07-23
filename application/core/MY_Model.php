@@ -305,7 +305,7 @@ class MY_Model extends CI_Model
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
             $sql .=  ' WHERE ' . $date . ' = (SELECT MAX(' . $date . ') FROM ' . $this->table . ')';
             $sql .= ' AND ';
-
+            var_dump($whereAnd);
             return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
@@ -378,11 +378,13 @@ class MY_Model extends CI_Model
             foreach($whereAnd as $key => $value) {
                 $sql .= $key . ' = ' . $this->db->escape($value) .  ' OR ';
             }
+            $sql = substr($sql, 0, -1);
             // On passe les variables AND Y = (A OR B)
             $sql .= ') AND (';
             foreach($whereOr as $key => $value) {
                 $sql .= $key . ' = ' . $this->db->escape($value) . ' OR ';
             }
+            $sql = substr($sql, 0, -4);
             $sql .= ')';
         }
         // ORDER BY & DESC
