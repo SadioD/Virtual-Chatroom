@@ -47,38 +47,33 @@ class Chat extends CI_Controller
     }//-------------------------------------------------------------------------------------------------------------------------------
     // AJAX Charge la conversation au click sur Contact, bouton Précédent, bouton Suivant ---------------------------------------------------------------------------------------------------
     public function loadConversation($contactPseudo, $conversationType, $conversationDate = null) {
+        $colsOne = ['sender', 'sender'];
+        $colsTwo = ['receiver', 'receiver'];
+        $values  = [$contactPseudo, $this->session->userdata('userName')];
+
         if ($conversationType == 'showConversation') {
-            // On recupère les messages de la liste
-                // SELECT WHERE date = MAX(date) AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            $conversation = $this->chatManager->getLatestData('*', 'datePub',
-                                                              array('sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')),
-                                                              array('receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')),
-                                                              'id', null, false);
-            // On envoie la réponse
+            // On recupère les messages de la liste where la date est la plus récente
+                // SELECT WHERE date = [SELECT date WHERE (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+                // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            // Enfin on envoie la réponse
+            $conversation = $this->chatManager->getLatestData('*', 'datePub', $colsOne, $values, $colsTwo, $values, 'id', null, false);
             $this->sendResponse($conversation->result(), 'showConversation', $contactPseudo);
-            // END
         }
         elseif($conversationType == 'previousMessages') {
-            // On recupère les messaes de la liste
-            // WHERE date = date - 1 AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            $conversation = $this->chatManager->getPreviousData('*', $conversationDate,
-                                                               ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
-                                                               ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
-                                                                'id', null, false);
-            // On envoie la réponse
+            // On recupère les messages de la liste where date = previous
+            // SELECT WHERE date = [SELECT date WHERE date < conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+            // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            // Enfin on envoie la réponse
+            $conversation = $this->chatManager->getPreviousData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
             $this->sendResponse($conversation->result(), 'previousMessages');
-            // END
         }
         elseif($conversationType == 'nextMessages') {
-            // On recupère les messaes de la liste
-            // WHERE date = date + 1 AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            $conversation = $this->chatManager->getNextData('*', $conversationDate,
-                                                           ['sender'   => $contactPseudo, 'sender'   => $this->session->userdata('userName')],
-                                                           ['receiver' => $contactPseudo, 'receiver' => $this->session->userdata('userName')],
-                                                            'id', null, false);
-            // On envoie la réponse
+            // On recupère les messages de la liste where date = next
+            // SELECT WHERE date = [SELECT date WHERE date > conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+            // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+            // Enfin on envoie la réponse
+            $conversation = $this->chatManager->getNextData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
             $this->sendResponse($conversation->result(), 'nextMessages');
-            // END
         }
 
     }//-----------------------------------------------------------------------------------------------------------------------------

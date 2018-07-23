@@ -257,7 +257,7 @@ class MY_Model extends CI_Model
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SQL QUERIES -----------------------------------------------------------------------------------------------------------
     // cette méthode permet de mettre à jour un table WHERE (x=A or x= B) AND (y=A or y=B)
-    public function setEntries($whereAnd = array(), $whereOr = array(), $escapedData = array(), $notEscapedData = array()) {
+    public function setEntries($colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $escapedData = array(), $notEscapedData = array()) {
         if(!empty($whereAnd) && !empty($whereOr)) {
             $sql  = '';
             $sql .= 'UPDATE ' . $this->table . ' SET ';
@@ -278,12 +278,12 @@ class MY_Model extends CI_Model
             $sql  = substr($sql, 0, -2);
             $sql .= ' WHERE';
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, null, null, false);
+            return $this->processQuery($sql, $colsOne, $whereAnd, $colsTwo, $whereOr, null, null, false);
         }
         return false;
     }
     // cette méthode permet de recupérer toutes les données WHERE x != x
-    public function getAllDataBut($select = '*', $exception = array(), $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null) {
+    public function getAllDataBut($select = '*', $exception = array(), $colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $orderBy = array(), $desc = null) {
         if(!empty($exception)) {
             $sql = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table . ' WHERE ';
@@ -293,52 +293,62 @@ class MY_Model extends CI_Model
             }
             $sql = substr($sql, 0, -4);
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc);
-            //return $this->db->query('SELECT * FROM membres WHERE pseudo != "Ahmed" ORDER BY pseudo');
+            return $this->processQuery($sql, $colsOne, $whereAnd, $colsTwo, $whereOr, $orderBy, $desc);
         }
         return false;
     }
     // cette méthode permet de recupérer les données les plus récentes (du jour le plus récent)
-    public function getLatestData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
+    public function getLatestData($select = '*', $date, $colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
         if(!empty($date)) {
             $sql = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
-            $sql .=  ' WHERE ' . $date . ' = (SELECT MAX(' . $date . ') FROM ' . $this->table . ')';
+            $sql .= ' WHERE ' . $date . ' = (SELECT ' . $date . ' FROM ' . $this->table . ' WHERE (';
+
+            // On passe le reste de la requete
+            $sql = $this->applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr);
+            $sql .= ') ORDER BY ' . $date . ' DESC LIMIT 1)';
             $sql .= ' AND ';
-            var_dump($whereAnd);
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
+            return $this->processQuery($sql, $colsOne, $whereAnd, $colsTwo, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
     }
     // Permet de récupérer les données de la date précédant la date entrée (WHERE date = date - 1)
-    public function getPreviousData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
+    public function getPreviousData($select = '*', $date, $conversationDate, $colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
         if(!empty($date)) {
             $sql  = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
-            $sql .= ' WHERE ' . $date . ' = CAST(' . $date . ' AS DATE) - 1';
+            $sql .= ' WHERE ' . $date . ' = (SELECT ' . $date . ' FROM ' . $this->table . ' WHERE ' . $date . ' < "' . $conversationDate . '" AND (';
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
+            // On passe le reste de la requete
+            $sql = $this->applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr);
+            $sql .= ') ORDER BY ' . $date . ' DESC LIMIT 1)';
+            $sql .= ' AND ';
+            return $this->processQuery($sql, $colsOne, $whereAnd, $colsTwo, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
     }
     // Permet de récupérer les données de la date suivant la date entrée (WHERE date = date + 1)
-    public function getNextData($select = '*', $date, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
+    public function getNextData($select = '*', $date, $conversationDate, $colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true) {
         if(!empty($date)) {
             $sql  = '';
             $sql .= 'SELECT ' . $select . ' FROM ' . $this->table;
-            $sql .= ' WHERE ' . $date . ' = CAST(' . $date . ' AS DATE) + 1';
+            $sql .= ' WHERE ' . $date . ' = (SELECT ' . $date . ' FROM ' . $this->table . ' WHERE ' . $date . ' > "' . $conversationDate . '" AND (';
 
-            return $this->processQuery($sql, $whereAnd, $whereOr, $orderBy, $desc, $quickProcess);
+            // On passe le reste de la requete
+            $sql = $this->applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr);
+            $sql .= ') ORDER BY ' . $date . ' LIMIT 1)';
+            $sql .= ' AND ';
+            return $this->processQuery($sql, $colsOne, $whereAnd, $colsTwo, $whereOr, $orderBy, $desc, $quickProcess);
         }
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
     // Permet de supprimer des entrées (WHERE x = x OR Y = Y)
-    public function deleteEntries($key, $value, $whereOr = array(), $quickProcess = true) {
+    public function deleteEntries($key, $value, $cols = array(), $whereOr = array(), $quickProcess = true) {
         if(!empty($key) && !empty($value) && !empty($whereOr)) {
             $sql  = '';
             $sql .= 'DELETE FROM ' . $this->table . ' WHERE ' . $key . ' = ' . $this->db->escape($value);
 
-            $this->processQuery($sql, null, $whereOr, null, null, $quickProcess);
+            $this->processQuery($sql, null, null, $cols, $whereOr, null, null, $quickProcess);
         }
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
@@ -347,8 +357,7 @@ class MY_Model extends CI_Model
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // OTHERS  -----------------------------------------------------------------------------------------------------------
     // cette méthode permet de vérifier si une entrée existe en BDD
-    public function isUnique($select = '*', $where)
-    {
+    public function isUnique($select = '*', $where) {
         $result =  $this->db->select($select)
                             ->from($this->table)
                             ->where($where)
@@ -357,34 +366,42 @@ class MY_Model extends CI_Model
 
         return !empty($result) ? false : true;
     }//--------------------------------------------------------------------------------------------------------------------------------
+    // Permet d'aviter la duplication de code passe les variables x = A or B and y = B or C ---------------------------------------------------------------------------------------------------
+    protected function applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr) {
+        // On passe les variabes AND X = (A OR B)
+        for($i = 0; $i < count($whereAnd); $i++){
+            $sql .= $colsOne[$i] . ' = ' . $this->db->escape($whereAnd[$i]) .  ' OR ';
+        }
+        $sql = substr($sql, 0, -4);
+
+        // On passe les variables AND Y = (A OR B)
+        $sql .= ') AND (';
+        for($i = 0; $i < count($whereOr); $i++){
+            $sql .= $colsTwo[$i] . ' = ' . $this->db->escape($whereOr[$i]) .  ' OR ';
+        }
+        $sql = substr($sql, 0, -4);
+        return $sql;
+    }//--------------------------------------------------------------------------------------------------------------------------------
     // Cette méthode traite les requetes SQL (WHERE ORDER BY DESC) pour éviter la duplication  -----------------------------------------------------------------------------------------------------------
-    protected function processQuery($sql, $whereAnd = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true)
+    protected function processQuery($sql, $colsOne = array(), $whereAnd = array(), $colsTwo = array(), $whereOr = array(), $orderBy = array(), $desc = null, $quickProcess = true)
     {
         if($quickProcess == true) {
             if(!empty($whereAnd)) {
-                foreach($whereAnd as $key => $value) {
-                    $sql .= ' AND ' . $key . ' = ' . $this->db->escape($value);
+                for($i = 0; $i < count($whereAnd); $i++){
+                    $sql .= $colsOne[$i] . ' = ' . $this->db->escape($whereAnd[$i]);
                 }
+
             }
             if(!empty($whereOr)) {
-                foreach($whereOr as $key => $value) {
-                    $sql .= ' OR ' . $key . ' = ' . $this->db->escape($value);
+                for($i = 0; $i < count($whereOr); $i++){
+                    $sql .= $colsTwo[$i] . ' = ' . $this->db->escape($whereOr[$i]);
                 }
             }
         }
         else {
-            // On passe les variabes AND X = (A OR B)
             $sql .= ' (';
-            foreach($whereAnd as $key => $value) {
-                $sql .= $key . ' = ' . $this->db->escape($value) .  ' OR ';
-            }
-            $sql = substr($sql, 0, -1);
-            // On passe les variables AND Y = (A OR B)
-            $sql .= ') AND (';
-            foreach($whereOr as $key => $value) {
-                $sql .= $key . ' = ' . $this->db->escape($value) . ' OR ';
-            }
-            $sql = substr($sql, 0, -4);
+
+            $sql = $this->applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr);
             $sql .= ')';
         }
         // ORDER BY & DESC
