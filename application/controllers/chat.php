@@ -48,53 +48,58 @@ class Chat extends CI_Controller
     }//-------------------------------------------------------------------------------------------------------------------------------
     // AJAX Charge la conversation au click sur Contact, bouton Précédent, bouton Suivant ---------------------------------------------------------------------------------------------------
     public function loadConversation($contactPseudo, $conversationType, $conversationDate = null) {
-        $colsOne = ['sender', 'sender'];
-        $colsTwo = ['receiver', 'receiver'];
-        $values  = [$contactPseudo, $this->session->userdata('userName')];
+        if($this->session->isAuthentificated()) {
+            $colsOne = ['sender', 'sender'];
+            $colsTwo = ['receiver', 'receiver'];
+            $values  = [$contactPseudo, $this->session->userdata('userName')];
 
-        if ($conversationType == 'showConversation') {
-            // On recupère les messages de la liste where la date est la plus récente
-                // SELECT WHERE date = [SELECT date WHERE (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+            if ($conversationType == 'showConversation') {
+                // On recupère les messages de la liste where la date est la plus récente
+                    // SELECT WHERE date = [SELECT date WHERE (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+                    // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+                // Enfin on envoie la réponse
+                $conversation = $this->chatManager->getLatestData('*', 'datePub', $colsOne, $values, $colsTwo, $values, 'id', null, false);
+                $this->sendResponse($conversation->result(), 'showConversation', $contactPseudo);
+            }
+            elseif($conversationType == 'previousMessages') {
+                // On recupère les messages de la liste where date = previous
+                // SELECT WHERE date = [SELECT date WHERE date < conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
                 // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            // Enfin on envoie la réponse
-            $conversation = $this->chatManager->getLatestData('*', 'datePub', $colsOne, $values, $colsTwo, $values, 'id', null, false);
-            $this->sendResponse($conversation->result(), 'showConversation', $contactPseudo);
+                // Enfin on envoie la réponse
+                $conversation = $this->chatManager->getPreviousData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
+                $this->sendResponse($conversation->result(), 'previousMessages');
+            }
+            elseif($conversationType == 'nextMessages') {
+                // On recupère les messages de la liste where date = next
+                // SELECT WHERE date = [SELECT date WHERE date > conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
+                // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
+                // Enfin on envoie la réponse
+                $conversation = $this->chatManager->getNextData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
+                $this->sendResponse($conversation->result(), 'nextMessages');
+            }
         }
-        elseif($conversationType == 'previousMessages') {
-            // On recupère les messages de la liste where date = previous
-            // SELECT WHERE date = [SELECT date WHERE date < conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
-            // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            // Enfin on envoie la réponse
-            $conversation = $this->chatManager->getPreviousData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
-            $this->sendResponse($conversation->result(), 'previousMessages');
-        }
-        elseif($conversationType == 'nextMessages') {
-            // On recupère les messages de la liste where date = next
-            // SELECT WHERE date = [SELECT date WHERE date > conversationDate AND (sender = pseudo OR session(User)) AND (receiver = pseudo OR session(User))
-            // ORDER BY date DESC limit 1] AND (sender = $pseudo OR session(user)) AND (receiver = $pseudo OR session(user))
-            // Enfin on envoie la réponse
-            $conversation = $this->chatManager->getNextData('*', 'datePub', $conversationDate, $colsOne, $values, $colsTwo, $values, 'id', null, false);
-            $this->sendResponse($conversation->result(), 'nextMessages');
-        }
-
+        return false;
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX Ajoute un message - POST via formulaire ---------------------------------------------------------------------------------------------------
     public function postNewMessage() {
-        // On insère le message POST avec status 'newPost' dans messages
-        $heurePub = date("H:i");
-        $this->chatManager->addEntry(     array('sender'         => $this->session->userdata('userName'),
-                                                'receiver'       => $this->input->post('receiverPseudo'),
-                                                'senderMessage'  => $this->input->post('senderMessage'),
-                                                'messageStatus'  => 'newPost'),
-                                          array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
-                                                'senderHeurePub' => $heurePub));
-        // Ensuite on envoie la réponse AJAX
-        $response  = [array('status'         => 'postMessage'),
-                      array('senderMessage'  => htmlspecialchars($this->input->post('senderMessage')),
-                            'senderHeurePub' => $heurePub)];
-        echo json_encode($response);
-        return true;
-        // END
+        if($this->session->isAuthentificated()) {
+            // On insère le message POST avec status 'newPost' dans messages
+            $heurePub = date("H:i");
+            $this->chatManager->addEntry(     array('sender'         => $this->session->userdata('userName'),
+                                                    'receiver'       => $this->input->post('receiverPseudo'),
+                                                    'senderMessage'  => $this->input->post('senderMessage'),
+                                                    'messageStatus'  => 'newPost'),
+                                              array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
+                                                    'senderHeurePub' => $heurePub));
+            // Ensuite on envoie la réponse AJAX
+            $response  = [array('status'         => 'postMessage'),
+                          array('senderMessage'  => htmlspecialchars($this->input->post('senderMessage')),
+                                'senderHeurePub' => $heurePub)];
+            echo json_encode($response);
+            return true;
+            // END
+        }
+        return false;
 
 
         // recuperer en POST $receiverPseudo, $senderMessage
@@ -117,32 +122,40 @@ class Chat extends CI_Controller
     }//-----------------------------------------------------------------------------------------------------------------------------
     //Gère les requetes automatic recues par Ajax (toutes les 30s) ---------------------------------------------------------------------------------------------------
     public function ajaxAutomaticRequests($requestStatus) {
-        if(    $requestStatus == 'loadNewMessages')      $this->loadNewMessage();
-        elseif($requestStatus == 'checkOnlineStatus')    $this->checkOnlineStatus();
+        if($this->session->isAuthentificated()) {
+            if(    $requestStatus == 'loadNewMessages')      $this->loadNewMessage();
+            elseif($requestStatus == 'checkOnlineStatus')    $this->checkOnlineStatus();
+        }
+        return false;
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
     public function updateMessageStatus($senderPseudo, $messageStatus) {
-        // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
-        // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
-        $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
-                                                'sender'        => $senderPseudo),
-                                          array('messageStatus' => $messageStatus));
+        if($this->session->isAuthentificated()) {
+            // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
+            // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
+            $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
+                                                    'sender'        => $senderPseudo),
+                                              array('messageStatus' => $messageStatus));
+        }
+        return false;
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
     // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function deleteConversation() {
-        $deleteList = unserialize($this->input->post('deleteList'));
-        for($i = 0; $i < count($deleteList); $i++)
-        {
-            if(!empty($deleteList[$i])) {
-                $this->chatManager->deleteEntries('sender', $deleteList[$i], array('receiver' => $deleteList[$i]));
+        if($this->session->isAuthentificated()) {
+            $deleteList = unserialize($this->input->post('deleteList'));
+            for($i = 0; $i < count($deleteList); $i++)
+            {
+                if(!empty($deleteList[$i])) {
+                    $this->chatManager->deleteEntries('sender', $deleteList[$i], array('receiver' => $deleteList[$i]));
+                }
             }
+            // Ensuite on envoie la reponse AJAX
+            $response = [array('status' => 'suppression')];
+            echo json_encode($response);
+            // END
         }
-        // Ensuite on envoie la reponse AJAX
-        $response = [array('status' => 'suppression')];
-        echo json_encode($response);
-        // END
-
+        return false;
     }//-----------------------------------------------------------------------------------------------------------------------------
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

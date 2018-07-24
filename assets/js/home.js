@@ -125,7 +125,7 @@ $(function(){
             // SHOW or HIDE l'icone de nouveaux messages
             setNewMessageIcone: function(status, element, response = null) {
                 if(status == 'ON') {
-                    for(var i = 0, c = response.length; i < c; i++) {
+                    for(var i = 0, c = response[1].length; i < c; i++) {
                         if(response[1][i].senderMessage != null && response[1][i].sender == $(element).find('.name-meta').text()) {
                             $(element).find('.messageIcone').show();
                         }
@@ -137,10 +137,13 @@ $(function(){
             // Affiche ou HIDE l'icone de connexion en fonction du statut de connexion
             setConnexionIcone: function(contact, element) {
                 if(contact.connexionStatus == 'online') {
-                    $(element).attr('class', 'fa fa-circle').text(' online');
+                    $(element).attr('class', 'fa fa-circle');
+                    $(element).parent().html($(element)[0]).append(' online');
+
                 }
                 else {
-                    $(element).attr('class', 'fa fa-circle-o').text(' offline');
+                    $(element).attr('class', 'fa fa-circle-o');
+                    $(element).parent().html($(element)[0]).append(' offline');
                 }
             }
         },
@@ -175,7 +178,7 @@ $(function(){
                 // Paramètres envoyés : requestStatus(checkOnlineStatus)
                 setInterval(function() {
                     manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');
-                }, 300000);
+                }, 30000);
             },
             chatRoomSide: function() {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation
@@ -210,7 +213,7 @@ $(function(){
         sendAjaxRequest: function(side, methodType, url, element = null, param = null) {
             $.ajax({
                 method: methodType,
-                url: 'http://homework:800/Projects/Chat/CodeIgniter/' + url,
+                url: 'http://homework:800/Projects/Chatroom/CodeIgniter/' + url,
                 data: param,
                 dataType: 'json',
                 error: function(xhr) {
@@ -243,18 +246,20 @@ $(function(){
                         var contact = this;
                         for(var i = 0, c = response[1].length; i < c; i++) {
                             if($(contact).text() == response[1][i].pseudo) {
-                                manager.settings.setConnexionIcone(response[1][i], $(contact).next('.connexionStatus').children('i').get()[0]);
+                                manager.settings.setConnexionIcone(response[1][i], $(contact).next().next().children('i').get()[0]);
                             }
                         }
                     });
                     // On met à jour le statut de connexion de session(userName) - Zone ChatRoom
-                    // On parcourt la liste des contacts (reponse) pour le faire
+                    // On parcourt la liste des contacts (reponse) pour le faire + Si session --> offline on désactive le form POST
                     for(var i = 0, c = response[1].length; i < c; i++) {
-                        if($('#sideBarUserName').text() == response[1][i].pseudo) {
+                        if($('#sideBarUserName').text().slice(1) == response[1][i].pseudo) {
                             manager.settings.setConnexionIcone(response[1][i], $('#connexionStatus').get()[0]);
+                            if(response[1][i].connexionStatus == 'offline') $('#senderMessage').attr('disabled', true);
                         }
                     }
                     return true;
+
                 }
                 return false;
             },
