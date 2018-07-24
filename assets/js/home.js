@@ -276,6 +276,7 @@ $(function(){
 
                     if(response[0].messagesList == 'empty') {
                         $('.message-date').text('Say Hello!');
+                        manager.settings.setChatRoomActive('Display "Say Hello"');
                         return true;
                     }
                 }
@@ -336,7 +337,7 @@ $(function(){
                 var conversation = manager.settings.createHTMLElements(response, 'current||previous||next-Timeline');
                 $(conversation).insertBefore($('#myAnchor'));
                 manager.setEvents.chatRoomSide();
-                manager.settings.setChatRoomActive('load');
+                manager.settings.setChatRoomActive('displayDate');
 
                 // Enfin Si le status = showConversation, on active l'element et le chatRoom +
                 // Paramètres envoyés : $receiverPseudo, $conversationType, $conversationDate, $conversationTime
