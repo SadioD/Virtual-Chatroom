@@ -187,14 +187,16 @@ $(function(){
                 });
                 // Au CLICK sur Précédent - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (previousMessages) + currentDate
-                $('#bouttonPrecedent').click(function() {
+                $('.bouttonPrecedent').click(function(e) {
+                    e.preventDefault();
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
                                             'chat/loadConversation/' + $('#receiverHeading').text() + '/previousMessages/' + $('.message-date').text());
                 });
                 // Au CLICK sur Suivant - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (nextMessages) + currentDate
-                $('#bouttonSuivant').click(function() {
+                $('.bouttonSuivant').click(function(e) {
+                    e.preventDefault();
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
                                             'chat/loadConversation/' + $('#receiverHeading').text() + '/nextMessages/' + $('.message-date').text());
@@ -292,7 +294,7 @@ $(function(){
                 // Cas - Affichage des messages suivants (quand on click sur Boutton suivant)
                 // S'il n'y a pas de messages à afficher on supprime le boutton suivant
                 else if(response[0].status == 'nextMessages') {
-                    if(response[0].messageList == 'empty') {
+                    if(response[0].messagesList == 'empty') {
                         $('.bouttonSuivant').remove();
                         alert('There are no more messages to display!');
                         return true;
@@ -330,8 +332,11 @@ $(function(){
                     return true;
                 }
                 // On recupère les elements HTML de la conversation et On insère la conversation avant l'ancre' FOCUS
+                // Ensuite On active le snouveaux bouttons precédent et suivant et on affiche la date
                 var conversation = manager.settings.createHTMLElements(response, 'current||previous||next-Timeline');
                 $(conversation).insertBefore($('#myAnchor'));
+                manager.setEvents.chatRoomSide();
+                manager.settings.setChatRoomActive('load');
 
                 // Enfin Si le status = showConversation, on active l'element et le chatRoom +
                 // Paramètres envoyés : $receiverPseudo, $conversationType, $conversationDate, $conversationTime

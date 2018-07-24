@@ -535,10 +535,9 @@ body {
     cursor: pointer;
 }
 .bouttonSuivant {
-    margin-bottom: 1%;
-    margin-top: 1%;
+    position: absolute;
+    bottom: 15%;
 }
-
 
 
 @media screen and (max-width: 1000px) {
@@ -696,6 +695,10 @@ body {
   }
   #sideBarUserName {
       font-size: 100%;
+  }
+  .bouttonSuivant {
+      position: absolute;
+      bottom: 16%;
   }
 }
 
