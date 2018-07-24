@@ -168,10 +168,14 @@ $(function(){
                 });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
                 // Paramètres envoyés : requestStatus(loadNewMessage)
-                setInterval("manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessage', $('.sideBar-body').get());", 30000);
+                setInterval(function() {
+                    manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessages', $('.sideBar-body').get());
+                }, 30000);
                 // Toutes les 5mn on envoie une requete pour vérifier si l'état de connexion des membres
                 // Paramètres envoyés : requestStatus(checkOnlineStatus)
-                setInterval("manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');", 300000);
+                setInterval(function() {
+                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');
+                }, 300000);
             },
             chatRoomSide: function() {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation

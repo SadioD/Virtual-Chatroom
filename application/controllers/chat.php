@@ -27,6 +27,7 @@ class Chat extends CI_Controller
         $this->session->setAuthentificated(true);
         $this->session->set_userdata('userName', 'Ahmed');
         $this->session->set_userdata('photo', 'avatar_homme.png');
+        $this->memberManager->updateEntry(['pseudo' => $this->session->userdata('userName')], ['connexionStatus' => 'online']);
 
         echo 'Page de connexion , if online access true, green boutton else gray boutton';
 
@@ -116,8 +117,8 @@ class Chat extends CI_Controller
     }//-----------------------------------------------------------------------------------------------------------------------------
     //Gère les requetes automatic recues par Ajax (toutes les 30s) ---------------------------------------------------------------------------------------------------
     public function ajaxAutomaticRequests($requestStatus) {
-        if(    $requestStatus == 'loadNewMessage')      $this->loadNewMessage();
-        elseif($requestStatus == 'checkOnlineStatus')   $this->checkOnlineStatus();
+        if(    $requestStatus == 'loadNewMessages')      $this->loadNewMessage();
+        elseif($requestStatus == 'checkOnlineStatus')    $this->checkOnlineStatus();
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
     public function updateMessageStatus($senderPseudo, $messageStatus) {
@@ -166,7 +167,7 @@ class Chat extends CI_Controller
         if(  $conversationType == 'previousMessages' || $conversationType == 'showConversation' || $conversationType == 'nextMessages') {
             $response = [$data, $conversation, array('datePub' => $conversation[0]->datePub)];
         }
-        elseif($conversationType == 'loadNewMessage' || $conversationType == 'checkOnlineStatus') {
+        elseif($conversationType == 'loadNewMessages' || $conversationType == 'checkOnlineStatus') {
             $response = [$data, $conversation];
         }
         echo json_encode($response);
@@ -183,24 +184,11 @@ class Chat extends CI_Controller
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
     // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'newPost'
+    // Ensuite on envoie la réponse
     protected function loadNewMessage() {
-        $newMessages = $this->chatManager->getData('*', array('receiver' => $thi->session->userdata('userName'),
+        $newMessages = $this->chatManager->getData('*', array('receiver'      => $this->session->userdata('userName'),
                                                               'messageStatus' => 'newPost'), null, null, 'senderHeurePub');
-        // On envoie la réponse
         $this->sendResponse($newMessages, 'loadNewMessages');
-        // END
-
-        /* On charge le messae de tout le monde, where receiver = session[userName] AND message status = 'notRead'
-            => on n'a plus besoin des paramètres d'en haut
-            Exemple :
-                douze post a grasset =>
-                sender = 12 et receiver = grasset  --- status not read
-
-                requete loadNewMessages
-                    slect * where receiver = userName and status = not read
-             */
-
-
     }//-----------------------------------------------------------------------------------------------------------------------------
     // Permet de vérifier si les contacts sont connectés ---------------------------------------------------------------------------------------------------
     protected function checkOnlineStatus() {
