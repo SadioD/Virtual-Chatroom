@@ -84,20 +84,26 @@ class Chat extends CI_Controller
     public function postNewMessage() {
         if($this->session->isAuthentificated()) {
             // On insère le message POST avec status 'newPost' dans messages
-            $heurePub = date("H:i");
+            $heurePub = date("H:i:s");
+            $datePub  = '"' . date("m-d-Y") . '"';
             $this->chatManager->addEntry(     array('sender'         => $this->session->userdata('userName'),
                                                     'receiver'       => $this->input->post('receiverPseudo'),
                                                     'senderMessage'  => $this->input->post('senderMessage'),
-                                                    'messageStatus'  => 'newPost'),
-                                              array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
-                                                    'senderHeurePub' => $heurePub));
+                                                    'messageStatus'  => 'newPost',
+                                                    'senderHeurePub' => $heurePub),
+                                              array('datePub'        => 'NOW()'));
+
+
+
+
+                                              /*array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
+                                                    'senderHeurePub' => '"' . $heurePub . '"'));*/
             // Ensuite on envoie la réponse AJAX
             $response  = [array('status'         => 'postMessage'),
                           array('senderMessage'  => htmlspecialchars($this->input->post('senderMessage')),
                                 'senderHeurePub' => $heurePub)];
             echo json_encode($response);
             return true;
-            // END
         }
         return false;
 
@@ -191,11 +197,17 @@ class Chat extends CI_Controller
     public function test() {
         /*$this->layout->includeJS('test');
         $this->layout->showView('test.php');*/
-        echo date('d-m-Y à H:i');
+        //echo date('d-m-Y à H:i');
+        $this->layout->includeJS('test');
+        $this->layout->showView('test.php');
     }
     public function ajaxtest() {
-        $myVar = [['pere' => 'douze', 'mere' => 'chou'], ['pere' => 'ayden', 'mere' => 'hope']];
-        echo json_encode($myVar);
+        // $myVar = [['pere' => 'douze', 'mere' => 'chou'], ['pere' => 'ayden', 'mere' => 'hope']];
+        // echo json_encode($myVar);
+        $response['message'] = $this->input->post('receiverPseudo') . ' - a recu - ' . $this->input->post('senderMessage');
+        echo json_encode($response);
+
+
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
     // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'newPost'

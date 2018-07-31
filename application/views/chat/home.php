@@ -221,7 +221,7 @@
       <div class="row reply">
           <form id = "senderForm">
               <div class="col-sm-11 col-xs-11 reply-main">
-                  <textarea class="form-control" rows="1" id = "senderMessage" disabled></textarea>
+                  <textarea class="form-control" rows="1" id = "senderMessage" id = "senderMessage" disabled></textarea>
               </div>
               <div class="col-sm-1 col-xs-1 reply-send">
                   <i class="fa fa-send fa-2x" aria-hidden="true"></i>

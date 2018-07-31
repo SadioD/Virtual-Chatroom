@@ -103,7 +103,7 @@ $(function(){
                     // Le nouveau message posté
                     var conversation = '<div class="row message-body"><div class="col-sm-12 message-main-sender">';
                     conversation += '<div class="sender"><div class="message-text">' + response[1].senderMessage + '</div>';
-                    conversation += '<span class="message-time pull-right">' + response[1].senderHeurePub + '</span>';
+                    conversation += '<span class="message-time pull-right">' + response[1].senderHeurePub.slice(0, -3) + '</span>';
                     conversation += '</div></div></div>';
                 }
                 else if(responseStatus == 'loadNewMessages')
@@ -174,29 +174,33 @@ $(function(){
                 // Paramètres envoyés : requestStatus(loadNewMessage)
                 setInterval(function() {
                     manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessages', $('.sideBar-body').get());
-                }, 10000);
-                // Toutes les 5mn on envoie une requete pour vérifier si l'état de connexion des membres
+                }, 30000);
+                // Toutes les 1mn on envoie une requete pour vérifier si l'état de connexion des membres
                 // Paramètres envoyés : requestStatus(checkOnlineStatus)
                 setInterval(function() {
                     manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');
-                }, 30000);
+                }, 60000);
             },
-            chatRoomSide: function() {
+            chatRoomSide: function(param = null) {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation
                 $('#conversation').scroll(function() {
                     manager.settings.setChatRoomActive('scroll');
                 });
-                // Au CLICK sur Précédent - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
+                // Au CLICK sur Précédent - Désactivation form + send ajax pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (previousMessages) + currentDate
-                $('.bouttonPrecedent').click(function(e) {
+                $('.bouttonPrecedent').on('click', function(e) {
                     e.preventDefault();
+                    if(param != null) {
+                        alert('Your are now reviewing previous messages. To post a new message, you need first to load the latest messages (by clicking either "next Messages" button or "contact list" button)');
+                    }
+                    $('#senderMessage').attr('disabled', true);
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
                                             'chat/loadConversation/' + $('#receiverHeading').text() + '/previousMessages/' + $('.message-date').text());
                 });
                 // Au CLICK sur Suivant - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (nextMessages) + currentDate
-                $('.bouttonSuivant').click(function(e) {
+                $('.bouttonSuivant').on('click', function(e) {
                     e.preventDefault();
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
@@ -204,9 +208,9 @@ $(function(){
                 });
                 // Au POST - Vérifie le formulaire et envoie une requete AJAX si OK
                 // Paramètres envoyés : le message envoyé + le pseudo du receveur
-                $('.reply-send').click(function() {
+                $('.reply-send').on('click', function() {
                     if(manager.settings.checkForm($('#senderMessage').get()[0])) {
-                        var dataToSend = {senderMessage: $('#senderMessage').val(), receiverPseudo: $('#receiverHeading').text()};
+                        var dataToSend = { senderMessage: $('#senderMessage').val(), receiverPseudo: $('#receiverHeading').text() };
                         manager.sendAjaxRequest('chatRoomSide', 'POST', 'chat/postNewMessage', null, dataToSend);
                     }
                 });
@@ -299,6 +303,7 @@ $(function(){
                     if(response[0].messagesList == 'empty') {
                         $('.bouttonSuivant').remove();
                         alert('There are no more messages to display!');
+                        manager.settings.setChatRoomActive('click');
                         return true;
                     }
                     // On vide le chatRoom et on met à jour la date
@@ -306,8 +311,10 @@ $(function(){
                     $('.message-date').text(response[2].datePub);
                 }
                 // Cas - Ajout message conversation - POST via Formulaire
+                // On vide la zone de texte du formulaire et on affiche le message envoyé
                 else if(response[0].status == 'postMessage') {
                     var conversation = manager.settings.createHTMLElements(response, 'postMessage');
+                    $('#senderMessage').val('');
                     $(conversation).insertBefore($('#myAnchor'));
                     return true;
                 }
@@ -334,10 +341,11 @@ $(function(){
                     return true;
                 }
                 // On recupère les elements HTML de la conversation et On insère la conversation avant l'ancre' FOCUS
-                // Ensuite On active le snouveaux bouttons precédent et suivant et on affiche la date
+                // Ensuite on désactive les anciens évènement clicks  et on active les nouveaux bouttons precédent et suivant + show la date
                 var conversation = manager.settings.createHTMLElements(response, 'current||previous||next-Timeline');
                 $(conversation).insertBefore($('#myAnchor'));
-                manager.setEvents.chatRoomSide();
+                $('.reply-send, .bouttonSuivant, .bouttonPrecedent').off('click');
+                response[0].status == 'showConversation' ? manager.setEvents.chatRoomSide('first') : manager.setEvents.chatRoomSide();
                 manager.settings.setChatRoomActive('displayDate');
 
                 // Enfin Si le status = showConversation, on active l'element et le chatRoom +
@@ -353,10 +361,11 @@ $(function(){
         // Initialise la fonction
         loadProcess: function() {
             manager.setEvents.contactSide();
-            manager.setEvents.chatRoomSide();
+            //manager.setEvents.chatRoomSide();
         }
     }
     manager.loadProcess();
+
 
 
 
