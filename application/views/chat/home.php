@@ -215,7 +215,7 @@
           </div>
       </div>-->
 
-        <span id = "myAnchor" tabindex = -1></span>
+        <div id = "myAnchor" tabindex = -1></div>
       </div>
       <!-- Formulaire pour poset un message -->
       <div class="row reply">

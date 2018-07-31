@@ -530,15 +530,19 @@ body {
     /*background: yellow;*/
     height: 30px;
     padding-top: 1%;
+    z-index: 10000000;
 }
 .bouttonPrecedent i, .bouttonSuivant i {
     cursor: pointer;
 }
 .bouttonSuivant {
     position: absolute;
-    bottom: 15%;
+    bottom: 13%;
 }
-
+#myAnchor {
+    height: 30px;
+    width: 2%;
+}
 
 @media screen and (max-width: 1000px) {
     #sideBarUserName {

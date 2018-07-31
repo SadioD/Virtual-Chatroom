@@ -129,13 +129,15 @@ class Chat extends CI_Controller
         return false;
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
     // AJAX met à jour MessageStatus dans table messages & membres - OLD/NEW POST ---------------------------------------------------------------------------------------------------
-    public function updateMessageStatus($senderPseudo, $messageStatus) {
+    public function updateMessageStatus($senderPseudo, $messageStatus, $conversationType = null) {
         if($this->session->isAuthentificated()) {
             // Exemple : Cas update to OlD POST après chargement de NewMessages dans chatRoom
             // On modifie table messages messageStatus, set oldPost Where receiver = session[userName] AND sender = $senderPseudo
             $this->chatManager->updateEntry(  array('receiver'      => $this->session->userdata('userName'),
                                                     'sender'        => $senderPseudo),
                                               array('messageStatus' => $messageStatus));
+            // Cas requetes loadNewMessages
+            if($conversationType != null)  {  echo 'true'; }
         }
         return false;
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------

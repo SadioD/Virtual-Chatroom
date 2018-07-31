@@ -110,7 +110,7 @@ $(function(){
                 {
                     // On parcours la liste des messages reçus, si elle n'est pas vide
                     // Et si le pseudoReceveur de la liste == pseudo figurant sur l'element actif = on crée élement HTML
-                    var conversation = null;
+                    var conversation = '';
                     for(var i = 0, c = response[1].length; i < c; i++) {
                         if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
@@ -135,11 +135,12 @@ $(function(){
                 return true;
             },
             // Affiche ou HIDE l'icone de connexion en fonction du statut de connexion
+            // Si element = photoAvater session(userName) & connexionStatus == 'online' => one ne fait rien
             setConnexionIcone: function(contact, element) {
                 if(contact.connexionStatus == 'online') {
+                    if($(element).attr('id') == 'connexionStatus') { return true; }
                     $(element).attr('class', 'fa fa-circle');
                     $(element).parent().html($(element)[0]).append(' online');
-
                 }
                 else {
                     $(element).attr('class', 'fa fa-circle-o');
@@ -173,7 +174,7 @@ $(function(){
                 // Paramètres envoyés : requestStatus(loadNewMessage)
                 setInterval(function() {
                     manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessages', $('.sideBar-body').get());
-                }, 30000);
+                }, 10000);
                 // Toutes les 5mn on envoie une requete pour vérifier si l'état de connexion des membres
                 // Paramètres envoyés : requestStatus(checkOnlineStatus)
                 setInterval(function() {
@@ -242,7 +243,7 @@ $(function(){
                 }
                 // Cas - Vérification status de connexion des membres
                 if(response[0].status == 'checkOnlineStatus') {
-                    // On met à jour le statut de connexion des Contact - LeftSide
+                    // On met à jour le statut de connexion des Contacts - LeftSide
                     // On parcourt la liste des contacts (leftside) pour le faire
                     $('.name-meta').each(function() {
                         var contact = this;
@@ -320,12 +321,12 @@ $(function(){
                     {
                         if($(this).hasClass('active')) {
                             var conversation = manager.settings.createHTMLElements(response, 'loadNewMessages');
-                            if(conversation != null)
+                            if(conversation != '')
                             {
                                 // On affiche les new Messages et on send Ajax pour update messageStatus 'oldPost' (table messages)
                                 // Paramètres envoyés : pseudo du contact qui a send le message (depuis left side) + messageStatus (oldPost)
                                 $(conversation).insertBefore($('#myAnchor'));
-                                manager.sendAjaxRequest('none', 'GET', 'chat/updateMessageStatus/' + $(this).find('.name-meta').text() + '/oldPost');
+                                manager.sendAjaxRequest('none', 'GET', 'chat/updateMessageStatus/' + $(this).find('.name-meta').text() + '/oldPost/loadNewmessage');
                             }
                         }
                         else { manager.settings.setNewMessageIcone('ON', this, response); }
