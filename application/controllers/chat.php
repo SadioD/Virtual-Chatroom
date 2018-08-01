@@ -92,12 +92,6 @@ class Chat extends CI_Controller
                                                     'messageStatus'  => 'newPost',
                                                     'senderHeurePub' => $heurePub),
                                               array('datePub'        => 'NOW()'));
-
-
-
-
-                                              /*array('datePub'        => date("m-d-Y"),  // Si ca marche pas avec Previous Message try SELECT DATE(NOW()) here
-                                                    'senderHeurePub' => '"' . $heurePub . '"'));*/
             // Ensuite on envoie la réponse AJAX
             $response  = [array('status'         => 'postMessage'),
                           array('senderMessage'  => htmlspecialchars($this->input->post('senderMessage')),
@@ -151,17 +145,20 @@ class Chat extends CI_Controller
     // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function deleteConversation() {
         if($this->session->isAuthentificated()) {
+            $colsOne    = ['sender', 'sender'];
+            $colsTwo    = ['receiver', 'receiver'];
             $deleteList = unserialize($this->input->post('deleteList'));
+
             for($i = 0; $i < count($deleteList); $i++)
             {
                 if(!empty($deleteList[$i])) {
-                    $this->chatManager->deleteEntries('sender', $deleteList[$i], array('receiver' => $deleteList[$i]));
+                    $values  = [$deleteList[$i], $this->session->userdata('userName')];
+                    $this->chatManager->deleteEntries($colsOne, $values, $colsTwo, $values);
                 }
             }
             // Ensuite on envoie la reponse AJAX
-            $response = [array('status' => 'suppression')];
+            $response = [array('status' => 'suppression', 'deleteList' => $this->input->post('deleteList'))];
             echo json_encode($response);
-            // END
         }
         return false;
     }//-----------------------------------------------------------------------------------------------------------------------------

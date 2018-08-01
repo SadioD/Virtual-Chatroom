@@ -343,12 +343,14 @@ class MY_Model extends CI_Model
         return false;
     }//-------------------------------------------------------------------------------------------------------------------
     // Permet de supprimer des entrées (WHERE x = x OR Y = Y)
-    public function deleteEntries($key, $value, $cols = array(), $whereOr = array(), $quickProcess = true) {
-        if(!empty($key) && !empty($value) && !empty($whereOr)) {
+    public function deleteEntries($colsOne, $whereAnd, $colsTwo, $whereOr) {
+        if(!empty($colsOne) && !empty($whereAnd) && !empty($colsTwo) && !empty($whereOr)) {
             $sql  = '';
-            $sql .= 'DELETE FROM ' . $this->table . ' WHERE ' . $key . ' = ' . $this->db->escape($value);
+            $sql .= 'DELETE FROM ' . $this->table . ' WHERE (';
 
-            $this->processQuery($sql, null, null, $cols, $whereOr, null, null, $quickProcess);
+            $sql  = $this->applyConditionVars($sql, $colsOne, $whereAnd, $colsTwo, $whereOr);
+            $sql .= ')';
+            return $this->db->query($sql);
         }
         return false;
     }//-------------------------------------------------------------------------------------------------------------------

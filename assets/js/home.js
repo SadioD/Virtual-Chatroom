@@ -59,7 +59,7 @@ $(function(){
             },
             // Vérifie le formulaire avant l'envoi
             checkForm: function(message) {
-                var myRegex  = /[a-z0-9]+/i;
+                var myRegex  = /[a-z0-9?/\\.]+/i;
                 if(myRegex.test(message.value)) {
                     return true;
                 }
@@ -160,14 +160,14 @@ $(function(){
                                              this);
                 });
                 // Au CLICK sur DELETE - Vide le ChatRoom si element actif (via class active) + supprime liste de BDD (via Ajax)
-                // Paramètres envoys en GET : ARRAY liste des pseudos à supprimer where receiverPseudo = each pseudo
+                // Paramètres envoyés en GET : ARRAY liste des pseudos à supprimer where receiverPseudo = each pseudo
                 $(".heading-compose").click(function() {
                     var deleteList = [];
-                    $('input:checked').each(function() {
+                    $('input:checked').each(function(i) {
                         if($(this).hasClass('active')) { manager.settings.emptyChatRoom(); }
-                        deleteList = $(this).val();
+                        deleteList[i] = $(this).val();
                     });
-                    var dataToSend = {deleteList: $.serialize(deleteList)};
+                    var dataToSend = { deleteList: $(deleteList).serialize() };
                     manager.sendAjaxRequest('contactSide', 'POST', 'chat/deleteConversation', null, dataToSend);
                 });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
@@ -243,6 +243,7 @@ $(function(){
                 // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression
                 if(response[0].status == 'suppression') {
                     alert('The selected messages have been deleted!');
+                    console.log(response);
                     return true;
                 }
                 // Cas - Vérification status de connexion des membres
@@ -277,6 +278,7 @@ $(function(){
                 if(response[0].status == 'showConversation') {
                     $('#chatHeadingAvatar').attr('src', $(element).find('img').attr('src')).show(); // mise à jour photo Chatromm
                     $('#receiverHeading').text($(element).find('.name-meta').text());        // mise à jour pseudo Chatromm
+                    manager.settings.setElementActive(element);
                     manager.settings.emptyChatRoom();
 
                     if(response[0].messagesList == 'empty') {
@@ -351,7 +353,6 @@ $(function(){
                 // Enfin Si le status = showConversation, on active l'element et le chatRoom +
                 // Paramètres envoyés : $receiverPseudo, $conversationType, $conversationDate, $conversationTime
                 if(response[0].status == 'showConversation') {
-                    manager.settings.setElementActive(element);
                     manager.settings.setNewMessageIcone('OFF', element);
                     manager.settings.setChatRoomActive('click', response[2].datePub);
                 }
