@@ -1,5 +1,5 @@
 $(function() {
-    var dataToSend = { senderMessage: 'bonjour douze', receiverPseudo: 'Ahmed' };
+    /*var dataToSend = { senderMessage: 'bonjour douze', receiverPseudo: 'Ahmed' };
 
     function sendAjax() {
         $.ajax({
@@ -15,7 +15,13 @@ $(function() {
             }
         });
     }
-    setTimeout(function() { sendAjax(); }, 3000);
+    setTimeout(function() { sendAjax(); }, 3000);*/
+
+    deleteList = 'ahmed';
+    /*deleteList[0] = 'ahmed';
+    deleteList[1] = 'chou';*/
+    var list = $(deleteList).serializeArray();
+    console.log(list)
 
 
 })

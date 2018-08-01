@@ -147,7 +147,7 @@ class Chat extends CI_Controller
         if($this->session->isAuthentificated()) {
             $colsOne    = ['sender', 'sender'];
             $colsTwo    = ['receiver', 'receiver'];
-            $deleteList = unserialize($this->input->post('deleteList'));
+            $deleteList = $this->input->post('contactList');
 
             for($i = 0; $i < count($deleteList); $i++)
             {
@@ -157,10 +157,15 @@ class Chat extends CI_Controller
                 }
             }
             // Ensuite on envoie la reponse AJAX
-            $response = [array('status' => 'suppression', 'deleteList' => $this->input->post('deleteList'))];
+            $response = [array('status' => 'suppression', 'deleteList' => $deleteList)];
             echo json_encode($response);
         }
         return false;
+    }//-----------------------------------------------------------------------------------------------------------------------------
+    // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
+    // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
+    public function contactResearch() {
+        
     }//-----------------------------------------------------------------------------------------------------------------------------
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

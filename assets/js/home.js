@@ -167,19 +167,24 @@ $(function(){
                         if($(this).hasClass('active')) { manager.settings.emptyChatRoom(); }
                         deleteList[i] = $(this).val();
                     });
-                    var dataToSend = { deleteList: $(deleteList).serialize() };
+                    var dataToSend = { contactList: deleteList };
                     manager.sendAjaxRequest('contactSide', 'POST', 'chat/deleteConversation', null, dataToSend);
+                });
+                // AutoCompletion - Au keyUp de la Search, on send une requete Ajax pour recupérer la liste des membres correspondants
+                // Paramètres envoyés en GET : chacune des lettres entrées
+                $('#searchText').on('keyup', function() {
+                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/contactResearch/' + $(this).val());
                 });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
                 // Paramètres envoyés : requestStatus(loadNewMessage)
                 setInterval(function() {
                     manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessages', $('.sideBar-body').get());
                 }, 30000);
-                // Toutes les 1mn on envoie une requete pour vérifier si l'état de connexion des membres
+                // Toutes les 30s on envoie une requete pour vérifier si l'état de connexion des membres
                 // Paramètres envoyés : requestStatus(checkOnlineStatus)
                 setInterval(function() {
                     manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');
-                }, 60000);
+                }, 30000);
             },
             chatRoomSide: function(param = null) {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation
@@ -240,14 +245,18 @@ $(function(){
                 alert('Oups.. Une erreur est survenue - ' + xhr.statusText);
             },
             contactSide: function(response) {
-                // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression
+                // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression +
+                // on discheck les cases cochées et on vide la zone de chat.
                 if(response[0].status == 'suppression') {
+                    $('input:checkbox').each(function() {
+                        $(this).prop('checked', false);
+                    });
+                    manager.settings.emptyChatRoom();
                     alert('The selected messages have been deleted!');
-                    console.log(response);
                     return true;
                 }
                 // Cas - Vérification status de connexion des membres
-                if(response[0].status == 'checkOnlineStatus') {
+                else if(response[0].status == 'checkOnlineStatus') {
                     // On met à jour le statut de connexion des Contacts - LeftSide
                     // On parcourt la liste des contacts (leftside) pour le faire
                     $('.name-meta').each(function() {
@@ -267,7 +276,12 @@ $(function(){
                         }
                     }
                     return true;
-
+                }
+                // Cas - Autocompletion, affichage des membres (zone de recherche)
+                else if(response[0].status == 'autoCompletion') {
+                    $('#recherche').autocomplete({
+                        source : response[0].contactList
+                    });
                 }
                 return false;
             },
@@ -283,7 +297,7 @@ $(function(){
 
                     if(response[0].messagesList == 'empty') {
                         $('.message-date').text('Say Hello!');
-                        manager.settings.setChatRoomActive('Display "Say Hello"');
+                        manager.settings.setChatRoomActive('click');
                         return true;
                     }
                 }
@@ -362,7 +376,7 @@ $(function(){
         // Initialise la fonction
         loadProcess: function() {
             manager.setEvents.contactSide();
-            //manager.setEvents.chatRoomSide();
+            manager.setEvents.chatRoomSide();
         }
     }
     manager.loadProcess();

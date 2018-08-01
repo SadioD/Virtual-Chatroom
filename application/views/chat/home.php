@@ -44,7 +44,7 @@
                             </div>
                             <div class="col-xs-4  pull-right sideBar-time">
                                 <span class = "openButton"><i class="fa fa-comments" aria-hidden="true"></i>|</span>
-                                <input type="checkbox" name="" value="<?php $contact->pseudo ?>" class = "myCheckBox"/>
+                                <input type="checkbox" name="" value="<?php echo $contact->pseudo ?>" class = "myCheckBox"/>
                             </div>
                         </div>
                     </div>
@@ -76,145 +76,8 @@
             <a class ="message-date"></a>
           </div>
         </div>
-        <!-- Chargement messages Précédents -->
-        <!--<div class="row bouttonPrecedent">
-          <div class="col-sm-12 text-center">
-            <a href = "" title = "Show Previous Messages" id = "bouttonPrecedent">
-                <i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i>
-            </a>
-          </div>
-        </div>
-        <!- Messages List -->
-        <!--<div class="row message-body">
-          <div class="col-sm-12 message-main-receiver">
-            <div class="receiver">
-              <div class="message-text">
-                  Hi, what are you doing?hihuihihhihihuihuftyftyddrtdrutfyfytftfyvy
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-sender">
-            <div class="sender">
-              <div class="message-text">
-                I am doing nothing man!gvygvyuvytytvtyvtyvtyvtvtvtyvtyftyfyftyftftyftfu
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
 
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-receiver">
-            <div class="receiver">
-              <div class="message-text">
-                  Hi, what are you doing?
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-sender">
-            <div class="sender">
-              <div class="message-text">
-                I am doing nothing man!
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-receiver">
-            <div class="receiver">
-              <div class="message-text">
-                  Hi, what are you doing?
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-sender">
-            <div class="sender">
-              <div class="message-text">
-                I am doing nothing man!
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-receiver">
-            <div class="receiver">
-              <div class="message-text">
-                  Hi, what are you doing?
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-sender">
-            <div class="sender">
-              <div class="message-text">
-                I am doing nothing man!
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-receiver">
-            <div class="receiver">
-              <div class="message-text">
-                  Hi, what are you doing?
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="row message-body">
-          <div class="col-sm-12 message-main-sender">
-            <div class="sender">
-              <div class="message-text">
-                I am doing nothing man!
-              </div>
-              <span class="message-time pull-right">
-                Sun
-              </span>
-            </div>
-          </div>
-        </div>
-        <!- Chargement messages Suivants -->
-        <!--<div class="row bouttonSuivant">
-          <div class="col-sm-12 text-center">
-            <a href = "" title = "Show Next Messages" id = "bouttonSuivant">
-                <i class="fa fa-chevron-circle-down fa-2x" aria-hidden="true"></i>
-            </a>
-          </div>
-      </div>-->
-
+        <!-- Ancre permettant le focus sur le bas de la conversation -->
         <div id = "myAnchor" tabindex = -1></div>
       </div>
       <!-- Formulaire pour poset un message -->
