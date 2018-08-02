@@ -170,10 +170,10 @@ $(function(){
                     var dataToSend = { contactList: deleteList };
                     manager.sendAjaxRequest('contactSide', 'POST', 'chat/deleteConversation', null, dataToSend);
                 });
-                // AutoCompletion - Au keyUp de la Search, on send une requete Ajax pour recupérer la liste des membres correspondants
+                // AutoCompletion - On KeyUp, on send une requete Ajax pour recupérer la liste des membres
                 // Paramètres envoyés en GET : chacune des lettres entrées
                 $('#searchText').on('keyup', function() {
-                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/contactResearch/' + $(this).val());
+                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/contactResearch');
                 });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
                 // Paramètres envoyés : requestStatus(loadNewMessage)
@@ -249,7 +249,7 @@ $(function(){
                 // on discheck les cases cochées et on vide la zone de chat.
                 if(response[0].status == 'suppression') {
                     $('input:checkbox').each(function() {
-                        $(this).prop('checked', false);
+                        $(this).prop('checked', false);     // equivalent de $(this).attr('checked', false);
                     });
                     manager.settings.emptyChatRoom();
                     alert('The selected messages have been deleted!');
@@ -278,9 +278,18 @@ $(function(){
                     return true;
                 }
                 // Cas - Autocompletion, affichage des membres (zone de recherche)
+                // On affiche l'autocompletion + send Ajax pour (activer le membre choisi et afficher la conversation)
                 else if(response[0].status == 'autoCompletion') {
-                    $('#recherche').autocomplete({
+                    $('#searchText').autocomplete({
                         source : response[0].contactList
+                    });
+                    $('.sideBar-body').each(function() {
+                        if($(this).find('.name-meta').text() == $('#searchText').val()) {
+                            manager.sendAjaxRequest('chatRoomSide',
+                                                    'GET',
+                                                    'chat/loadConversation/' + $(this).find('.name-meta').text() + '/showConversation',
+                                                     this);
+                        }
                     });
                 }
                 return false;

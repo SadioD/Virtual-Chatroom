@@ -10,9 +10,8 @@ class Chat extends CI_Controller
         $this->load->model('memberManager');
         $this->layout->setLayout('bootstrap');
 
-        // On inclue le CSS et JS propre aux pages pas de Bootstrap
-        $this->layout->includeCSS('home');
-        $this->layout->includeJS('home');
+
+
     //    $this->layout->includeJS('footer');
 
     }//-------------------------------------------------------------------------------------------------------------------------------
@@ -37,10 +36,14 @@ class Chat extends CI_Controller
     public function home() {
         if($this->session->isAuthentificated()) {
             $contactList = $this->memberManager->getAllDataBut('*', ['pseudo' => $this->session->userdata('userName')], null, null, 'pseudo');
+
+            // On inclue le CSS et JS propre aux pages pas de Bootstrap + show View
+            $this->layout->includeCSS('jquery-ui');  // Jquery UI
+            $this->layout->includeJS('jquery-ui');   // Jquery UI
+            $this->layout->includeCSS('home');
+            $this->layout->includeJS('home');
             $this->layout->showView('chat/home', array('contactList' => $contactList));
-            // $contactList = $this->memberManager->getData();
-            //var_dump($contactList->result());
-            //echo $this->session->userdata('userName');
+
         }
         else {
             redirect(site_url('user/connexion'));
@@ -157,15 +160,20 @@ class Chat extends CI_Controller
                 }
             }
             // Ensuite on envoie la reponse AJAX
-            $response = [array('status' => 'suppression', 'deleteList' => $deleteList)];
-            echo json_encode($response);
+            $this->sendResponse($deleteList, 'deleteConversation');
         }
         return false;
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX supprime en BDD les messages dont receiverPseudo = unserialize($_POST[deleteList]) ---------------------------------------------------------------------------------------------------
-    // On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
+    // JQUERY-UI ---> On recupère la liste de pseudo et pour chacun d'entre eux on on send sql request
     public function contactResearch() {
-        
+        $data        = $this->memberManager->getData();
+        $contactList = [];
+
+        foreach($data as $member) {
+            $contactList[] = $member->pseudo;
+        }
+        $this->sendResponse($contactList, 'autoCompletion');
     }//-----------------------------------------------------------------------------------------------------------------------------
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +201,12 @@ class Chat extends CI_Controller
         elseif($conversationType == 'loadNewMessages' || $conversationType == 'checkOnlineStatus') {
             $response = [$data, $conversation];
         }
+        elseif($conversationType == 'autoCompletion') {
+            $response    = [array('status' => 'autoCompletion', 'contactList' => $conversation)];
+        }
+        elseif($conversationType == 'deleteConversation') {
+            $response = [array('status' => 'suppression', 'deleteList' => $conversation)];
+        }
         echo json_encode($response);
         return true;
     }
@@ -200,7 +214,10 @@ class Chat extends CI_Controller
         /*$this->layout->includeJS('test');
         $this->layout->showView('test.php');*/
         //echo date('d-m-Y à H:i');
+        $this->layout->includeCSS('jquery-ui');
+        $this->layout->includeJS('jquery-ui');
         $this->layout->includeJS('test');
+
         $this->layout->showView('test.php');
     }
     public function ajaxtest() {

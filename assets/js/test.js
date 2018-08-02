@@ -17,11 +17,17 @@ $(function() {
     }
     setTimeout(function() { sendAjax(); }, 3000);*/
 
-    deleteList = 'ahmed';
+    //deleteList = 'ahmed';
     /*deleteList[0] = 'ahmed';
     deleteList[1] = 'chou';*/
-    var list = $(deleteList).serializeArray();
-    console.log(list)
+    /*var list = $(deleteList).serializeArray();
+    console.log(list)*/
+
+    var availableTags = ['AHmed', 'Grasset', 'Hoipe', 'Bebe'];
+    $( "#searchText" ).autocomplete({
+	    source: availableTags
+    });
 
 
-})
+
+});
