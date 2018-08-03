@@ -75,8 +75,25 @@ $(function() {
                     return manager.settings.setInvalid(element, 'Le champ "Pseudo" n\'est pas valide!');
                 },
                 // Vérifie que le fichier joint respecte la norme (taille/format)
-                checkFile: function(file) {
-                    // Définir la fonction API file
+                // Usage du plugin ValidationForm - Documentation https://jqueryvalidation.org/documentation/
+                // La méthode "filesize" doit être ajoutée au pluggin pour ensuite la déclarer dans la fonction Validate()
+                checkFile: function(file) {    
+                    $.validator.addMethod('filesize', function (value, element, param) {
+                        return this.optional(element) || (element.files[0].size <= param)
+                    }, 'la taille du fichier doit être inférieure à 500 Ko');
+
+                    $("#updateForm").validate({
+                        rules: {
+                            pseudo:      { minlength: 3, required: true },
+                            nom:         { minlength: 3, required: true },
+                            firstEmail:  { email: true,  required: true },
+                            sndEmail:    { equalTo: "#firstEmail" },
+                            firstPass:   { minlength: 6, required: true },
+                            sndPass:     { equalTo: "#firstPass" },
+                            preferences: { minlength: 10 },
+                            photo:       { extension: "png|jpg", filesize: 500000 }
+                        }
+                    });
                 }
             },
             setEvents: {
