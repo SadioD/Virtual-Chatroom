@@ -72,28 +72,24 @@ $(function() {
                     if(myRegex.test(element.val())) {
                         return manager.request(reqType, methodType, url, element);
                     }
-                    return manager.settings.setInvalid(element, 'Le champ "Pseudo" n\'est pas valide!');
+                    return manager.settings.setInvalid(element, 'The "Pseudo" field is not valid!');
                 },
                 // Vérifie que le fichier joint respecte la norme (taille/format)
-                // Usage du plugin ValidationForm - Documentation https://jqueryvalidation.org/documentation/
-                // La méthode "filesize" doit être ajoutée au pluggin pour ensuite la déclarer dans la fonction Validate()
-                checkFile: function(file) {    
-                    $.validator.addMethod('filesize', function (value, element, param) {
-                        return this.optional(element) || (element.files[0].size <= param)
-                    }, 'la taille du fichier doit être inférieure à 500 Ko');
+                checkFile: function(photo) {
+                    allowedTypes = ['png', 'jpg'],
+                    uploadedFile = photo.files[0].name.split('.');
+                    uploadedFile = uploadedFile[uploadedFile.length - 1].toLowerCase();
 
-                    $("#updateForm").validate({
-                        rules: {
-                            pseudo:      { minlength: 3, required: true },
-                            nom:         { minlength: 3, required: true },
-                            firstEmail:  { email: true,  required: true },
-                            sndEmail:    { equalTo: "#firstEmail" },
-                            firstPass:   { minlength: 6, required: true },
-                            sndPass:     { equalTo: "#firstPass" },
-                            preferences: { minlength: 10 },
-                            photo:       { extension: "png|jpg", filesize: 500000 }
-                        }
-                    });
+                    if(photo.files[0].size >= 250000) {
+                        $('#fileError').attr('class', 'formError inValid').text('Failed to upload - The file is too large!');
+                        return false
+                    }
+                    else if(allowedTypes.indexOf(uploadedFile) == -1) {
+                        $('#fileError').attr('class', 'formError inValid').text('Failed to upload - not a valid image!');
+                        return false
+                    }
+                    $('#fileError').attr('class', 'formError valid').text('');
+                    return true;
                 }
             },
             setEvents: {
@@ -108,16 +104,13 @@ $(function() {
                     });
                     // Vérification du fichier joint
                     $('.photo').on('change', function() {
-                        // Param est à définir api FILE
-
-
-                        if(manager.checkFile()) return manager.request('photoRegistration', 'POST', 'user/dataProcess/', $(this), param)
+                        manager.settings.checkFile(this);
                     });
                 },
                 onSubmit: function() {
                     // Vérification à l'envoi du formulaire, si le pseudo et la photo sont valides
                     $('#signUpForm').submit(function(e) {
-                        if($('#prenomRegister').hasClass('is-invalid') || $('.photo').hasClass('invalid')) {
+                        if($('#prenomRegister').hasClass('is-invalid') || $('#fileError').hasClass('inValid')) {
                             e.preventDefault();
                             return false;
                         }
@@ -143,11 +136,11 @@ $(function() {
                     success: function(response) {
                         if(    reqType == 'pseudoRegistration') {
                             if(response.status == 'true') { return manager.settings.setValid(element); }
-                            else                          { return manager.settings.setInvalid(element, 'Le pseudo choisi existe déjà, merci d\'en choisir un autre!'); }
+                            else                          { return manager.settings.setInvalid(element, 'The entered pseudo already exists, please choose another one!'); }
                         }
                         else if(reqType == 'authentification')  {
                             if(response.status == 'true') { return manager.settings.setValid(element); }
-                            else                          { return manager.settings.setInvalid(element, 'Le pseudo choisi n\'existe pas!'); }
+                            else                          { return manager.settings.setInvalid(element, 'The entered pseudo does not exist!'); }
                         }
                         else if(reqType == 'photoRegistration') { return manager.display.response(response, element); }
                     }

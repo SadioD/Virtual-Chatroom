@@ -33,7 +33,7 @@
                 <!-- The SignUp Form -->
                 <div id="signup">
                     <h1>Sign Up for Free</h1>
-                    <form action="" method="post" id = "signUpForm">
+                    <form action="<?php echo base_url() . 'chat/home'; ?>" method="post" id = "signUpForm" enctype="multipart/form-data">
                         <div class="top-row">
                             <div class="field-wrap">
                                 <label class = "label">
@@ -65,7 +65,7 @@
                 <!-- The logIn Form -->
                 <div id="login">
                     <h1>Welcome Back!</h1>
-                    <form action="" method="post" id = "logInForm">
+                    <form action="<?php echo base_url() . 'chat/home'; ?>" method="post" id = "logInForm">
                         <div class="top-row">
                             <div class="field-wrap">
                                 <label class = "label">
