@@ -359,7 +359,7 @@ class MY_Model extends CI_Model
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // OTHERS  -----------------------------------------------------------------------------------------------------------
     // cette méthode permet de vérifier si une entrée existe en BDD
-    public function isUnique($select = '*', $where) {
+    public function isUnique($where, $select = '*') {
         $result =  $this->db->select($select)
                             ->from($this->table)
                             ->where($where)
