@@ -58,7 +58,7 @@ $(function() {
                 // Valide les champs
                 setValid: function(element) {
                     element.attr('class', 'form-control prenom is-valid');
-                    element.next().next().html('');
+                    element.next().next().next().html('');
                     return true;
                 },
                 // Invalide les champs
@@ -135,14 +135,13 @@ $(function() {
                     },
                     success: function(response) {
                         if(    reqType == 'pseudoRegistration') {
-                            if(response.status == 'true') { return manager.settings.setValid(element); }
+                            if(response.status == true) { return manager.settings.setValid(element); }
                             else                          { return manager.settings.setInvalid(element, 'The entered pseudo already exists, please choose another one!'); }
                         }
                         else if(reqType == 'authentification')  {
-                            if(response.status == 'true') { return manager.settings.setValid(element); }
+                            if(response.status == true) { return manager.settings.setValid(element); }
                             else                          { return manager.settings.setInvalid(element, 'The entered pseudo does not exist!'); }
                         }
-                        else if(reqType == 'photoRegistration') { return manager.display.response(response, element); }
                     }
                 });
             },
