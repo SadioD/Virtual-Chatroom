@@ -50,8 +50,10 @@ $(function() {
 
     //La partie ci-dessous gère les champs --------------------------------------------------------------------------------------------------
     (function() {
-        var myRegex = /[a-z0-9]+/i,
+        var myRegex = /^[a-z0-9]{1,9}$/i,
             manager = {};
+
+            ///[a-z0-9]+/i,
 
         manager = {
             settings: {
@@ -72,7 +74,7 @@ $(function() {
                     if(myRegex.test(element.val())) {
                         return manager.request(reqType, methodType, url, element);
                     }
-                    return manager.settings.setInvalid(element, 'The "Pseudo" field is not valid!');
+                    return manager.settings.setInvalid(element, 'Invalid "Pseudo" - Spaces are not allowed | Max length : 9 characters!');
                 },
                 // Vérifie que le fichier joint respecte la norme (taille/format)
                 checkFile: function(photo) {
@@ -99,7 +101,7 @@ $(function() {
                         manager.settings.checkString('pseudoRegistration', 'GET', 'user/dataProcess/pseudoRegistration/' + $(this).val(), $(this));
                     });
                     // Vérification Connexion
-                    $('#prenomAuth').on('blur', function() {
+                    $('#prenomAuth').on('keyup', function() {
                         manager.settings.checkString('authentification', 'GET', 'user/dataProcess/authentification/' + $(this).val(), $(this));
                     });
                     // Vérification du fichier joint

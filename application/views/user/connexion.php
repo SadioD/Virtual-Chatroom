@@ -40,7 +40,7 @@
                                     Your Pseudo<span class="req">*</span>
                                 </label>
                                 <input type="text" name = "prenom" id = "prenomRegister" class = "form-control prenom"  required /><br/><br/>
-                                <span id = "prenomError" class = "formError"><?php echo form_error('pseudo'); ?></span>
+                                <span id = "prenomError" class = "formError"><?php echo form_error('prenom'); ?></span>
                             </div>
                             <div class="field-wrap" style = "margin-bottom: 15%;">
                                 <label>
@@ -53,10 +53,12 @@
                             </div>
                             <div class="field-wrap">
                                 <label>
-                                    Your Avatar
+                                    Your Avatar (png|jpg - Max 250Ko)
                                 </label>
                                 <input type="file" name = "photo" class = "photo" /><br/>
-                                <span id = "fileError" class = "formError"><?php echo form_error('nom'); ?></span>
+                                <span id = "fileError" class = "formError">
+                                    <?php echo isset($errorUpload) && !empty($errorUpload) ? $errorUpload : ''; ?>
+                                </span>
                             </div>
                         </div>
                         <button type="submit" class="button button-block" style = "border-radius: 4px;">Get Started</button>
@@ -72,7 +74,9 @@
                                     Your Pseudo<span class="req">*</span>
                                 </label>
                                 <input type="text" name = "prenom" id = "prenomAuth" class = "form-control prenom"  required /><br/><br/>
-                                <span id = "connexionError" class = "formError"><?php echo form_error('pseudo'); ?></span>
+                                <span id = "connexionError" class = "formError">
+                                    <?php echo isset($errorPrenomAuth) && !empty($errorPrenomAuth) ? $errorPrenomAuth : ''; ?>
+                                </span>
                             </div>
                         </div>
                         <button class="button button-block" style = "border-radius: 4px;"/>Log In</button>
