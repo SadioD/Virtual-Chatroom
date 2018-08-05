@@ -1,7 +1,7 @@
-// Avant que le DOM ne soit chargé on caché le back button
-$('#backButton').hide();
+// Avant que le DOM ne soit chargé on cache le back button + l'icone des nouveaux messages (contact list) + la photo Avatar zone de chat
+$('#backButton, #chatHeadingAvatar, .messageIcone').hide();
 
-// ENsuite on exécute le reste du code quand le DOM sera chargé
+// Ensuite on exécute le reste du code quand le DOM sera chargé
 $(function(){
     // CLIENT - Design : Afficher/ Faire disparaitre la liste de contacts et la zone de conversation ----------------------------------------------------------
     $('#backButton').on('click', showLeftSide);
@@ -46,9 +46,7 @@ $(function(){
             setChatRoomActive: function(calledEvent, datePub = null) {
                 if(calledEvent == 'click') {
                     // On Scroll la conversation en bas de page (dans zone de conversation)
-                    // Et on Retire la surcouche grise du ChatRoom et active le champ de Texte
                     $('#myAnchor').focus();
-                    $('#surcouche').hide();
                     $('#senderMessage').attr('disabled', false);
                 }
                 // Si la date est fournie, on actualise la date de la zone de texte
@@ -61,7 +59,7 @@ $(function(){
             },
             // Vérifie le formulaire avant l'envoi
             checkForm: function(message) {
-                var myRegex  = /[a-z0-9]+/i;
+                var myRegex  = /[a-z0-9?/\\.]+/i;
                 if(myRegex.test(message.value)) {
                     return true;
                 }
@@ -74,21 +72,24 @@ $(function(){
                 {
                     // Le bouton precedent
                     var conversation = '<div class="row bouttonPrecedent"><div class="col-sm-12 text-center">';
-                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage" class="' + response[2].datePub + '">';
+                    conversation +='<a href="" title="Show Previous Messages" id="previousMessage">';
                     conversation +='<i class="fa fa-chevron-circle-up fa-2x" aria-hidden="true"></i></a></div></div>';
 
                     // Les messages
-                    for(var i = 0, c = response.length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null) {
-                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
-                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
-                            conversation +='</div></div></div>';
-                        }
-                        if(response[1][i].senderMessage != null) {
+                    for(var i = 0, c = response[1].length; i < c; i++)
+                    {
+                        // Cas des messages où sender = session(userName) => received by $contact
+                        if(response[1][i].senderMessage != null && response[1][i].sender != $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-sender">';
                             conversation +='<div class="sender"><div class="message-text">' + response[1][i].senderMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub + '</span>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
+                            conversation +='</div></div></div>';
+                        }
+                        // Cas des messages où sender = $contact => received by session(userName)
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
+                            conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
+                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
@@ -102,19 +103,19 @@ $(function(){
                     // Le nouveau message posté
                     var conversation = '<div class="row message-body"><div class="col-sm-12 message-main-sender">';
                     conversation += '<div class="sender"><div class="message-text">' + response[1].senderMessage + '</div>';
-                    conversation += '<span class="message-time pull-right">' + response[1].senderHeurePub + '</span>';
+                    conversation += '<span class="message-time pull-right">' + response[1].senderHeurePub.slice(0, -3) + '</span>';
                     conversation += '</div></div></div>';
                 }
                 else if(responseStatus == 'loadNewMessages')
                 {
                     // On parcours la liste des messages reçus, si elle n'est pas vide
                     // Et si le pseudoReceveur de la liste == pseudo figurant sur l'element actif = on crée élement HTML
-                    var conversation = null;
+                    var conversation = '';
                     for(var i = 0, c = response[1].length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null && response[1][i].receiverPseudo == $('#receiverHeading').text()) {
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $('#receiverHeading').text()) {
                             conversation +='<div class="row message-body"><div class="col-sm-12 message-main-receiver">';
-                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].receiverMessage + '</div>';
-                            conversation +='<span class="message-time pull-right">' + response[1][i].receiverHeurePub + '</span>';
+                            conversation +='<div class="receiver"><div class="message-text">' + response[1][i].senderMessage + '</div>';
+                            conversation +='<span class="message-time pull-right">' + response[1][i].senderHeurePub.slice(0, -3) + '</span>';
                             conversation +='</div></div></div>';
                         }
                     }
@@ -124,14 +125,27 @@ $(function(){
             // SHOW or HIDE l'icone de nouveaux messages
             setNewMessageIcone: function(status, element, response = null) {
                 if(status == 'ON') {
-                    for(var i = 0, c = response.length; i < c; i++) {
-                        if(response[1][i].receiverMessage != null && response[1][i].receiver == $(element).find('.name-meta').text()) {
+                    for(var i = 0, c = response[1].length; i < c; i++) {
+                        if(response[1][i].senderMessage != null && response[1][i].sender == $(element).find('.name-meta').text()) {
                             $(element).find('.messageIcone').show();
                         }
                     }
                 }
                 else { $(element).find('.messageIcone').hide(); }
                 return true;
+            },
+            // Affiche ou HIDE l'icone de connexion en fonction du statut de connexion
+            // Si element = photoAvater session(userName) & connexionStatus == 'online' => one ne fait rien
+            setConnexionIcone: function(contact, element) {
+                if(contact.connexionStatus == 'online') {
+                    if($(element).attr('id') == 'connexionStatus') { return true; }
+                    $(element).attr('class', 'fa fa-circle');
+                    $(element).parent().html($(element)[0]).append(' online');
+                }
+                else {
+                    $(element).attr('class', 'fa fa-circle-o');
+                    $(element).parent().html($(element)[0]).append(' offline');
+                }
             }
         },
         // Active les évènements
@@ -146,44 +160,62 @@ $(function(){
                                              this);
                 });
                 // Au CLICK sur DELETE - Vide le ChatRoom si element actif (via class active) + supprime liste de BDD (via Ajax)
-                // Paramètres envoys en GET : ARRAY liste des pseudos à supprimer where receiverPseudo = each pseudo
+                // Paramètres envoyés en GET : ARRAY liste des pseudos à supprimer where receiverPseudo = each pseudo
                 $(".heading-compose").click(function() {
                     var deleteList = [];
-                    $('input:checked').each(function() {
+                    $('input:checked').each(function(i) {
                         if($(this).hasClass('active')) { manager.settings.emptyChatRoom(); }
-                        deleteList = $(this).val();
+                        deleteList[i] = $(this).val();
                     });
-                    var dataToSend = {deleteList: $.serialize(deleteList)};
+                    var dataToSend = { contactList: deleteList };
                     manager.sendAjaxRequest('contactSide', 'POST', 'chat/deleteConversation', null, dataToSend);
                 });
+                // AutoCompletion - On KeyUp, on send une requete Ajax pour recupérer la liste des membres
+                // Paramètres envoyés en GET : chacune des lettres entrées
+                $('#searchText').on('keyup', function() {
+                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/contactResearch');
+                });
                 // Toutes les 30s on envoie une requete pour charger les nouveaux messages de tous les membres
-                // Paramètres envoyés : Aucun
-                setInterval("manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/loadNewMessages/', $('.sideBar-body').get());", 30000);
+                // Paramètres envoyés : requestStatus(loadNewMessage)
+                setInterval(function() {
+                    manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/ajaxAutomaticRequests/loadNewMessages', $('.sideBar-body').get());
+                }, 30000);
+                // Toutes les 30s on envoie une requete pour vérifier si l'état de connexion des membres
+                // Paramètres envoyés : requestStatus(checkOnlineStatus)
+                setInterval(function() {
+                    manager.sendAjaxRequest('contactSide', 'GET', 'chat/ajaxAutomaticRequests/checkOnlineStatus');
+                }, 30000);
             },
-            chatRoomSide: function() {
+            chatRoomSide: function(param = null) {
                 // Au SCROLL - Affiche la date quand on scroll la zone de conversation
                 $('#conversation').scroll(function() {
                     manager.settings.setChatRoomActive('scroll');
                 });
-                // Au CLICK sur Précédent - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
+                // Au CLICK sur Précédent - Désactivation form + send ajax pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (previousMessages) + currentDate
-                $('#bouttonPrecedent').click(function() {
+                $('.bouttonPrecedent').on('click', function(e) {
+                    e.preventDefault();
+                    if(param != null) {
+                        alert('Your are now reviewing previous messages. To post a new message, you need first to load the latest messages (by clicking either "next Messages" button or "contact list" button)');
+                    }
+                    $('#senderMessage').attr('disabled', true);
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
                                             'chat/loadConversation/' + $('#receiverHeading').text() + '/previousMessages/' + $('.message-date').text());
                 });
                 // Au CLICK sur Suivant - Envoie une requete pour récupérer la conversation à afficher dans chatRoom
                 // Paramètres envoyés en requete : pseudo du contact + type de conversation (nextMessages) + currentDate
-                $('#bouttonSuivant').click(function() {
+                $('.bouttonSuivant').on('click', function(e) {
+                    e.preventDefault();
                     manager.sendAjaxRequest('chatRoomSide',
                                             'GET',
                                             'chat/loadConversation/' + $('#receiverHeading').text() + '/nextMessages/' + $('.message-date').text());
                 });
                 // Au POST - Vérifie le formulaire et envoie une requete AJAX si OK
                 // Paramètres envoyés : le message envoyé + le pseudo du receveur
-                $('.reply-send').click(function() {
+                $('.reply-send').on('click', function() {
                     if(manager.settings.checkForm($('#senderMessage').get()[0])) {
-                        var dataToSend = {senderMessage: $('#senderMessage').val(), receiverPseudo: $('#receiverHeading').text()};
+                        var dataToSend = { senderMessage: $('#senderMessage').val(), receiverPseudo: $('#receiverHeading').text() };
                         manager.sendAjaxRequest('chatRoomSide', 'POST', 'chat/postNewMessage', null, dataToSend);
                     }
                 });
@@ -193,7 +225,7 @@ $(function(){
         sendAjaxRequest: function(side, methodType, url, element = null, param = null) {
             $.ajax({
                 method: methodType,
-                url: 'http://homework:800/Projects/Chat/CodeIgniter/' + url,
+                url: 'http://homework:800/Projects/Chatroom/CodeIgniter/' + url,
                 data: param,
                 dataType: 'json',
                 error: function(xhr) {
@@ -213,10 +245,52 @@ $(function(){
                 alert('Oups.. Une erreur est survenue - ' + xhr.statusText);
             },
             contactSide: function(response) {
-                // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression
+                // Cas - Suppression de contact (conversation) - On affiche la confirmation de suppression +
+                // on discheck les cases cochées et on vide la zone de chat.
                 if(response[0].status == 'suppression') {
+                    $('input:checkbox').each(function() {
+                        $(this).prop('checked', false);     // equivalent de $(this).attr('checked', false);
+                    });
+                    manager.settings.emptyChatRoom();
                     alert('The selected messages have been deleted!');
                     return true;
+                }
+                // Cas - Vérification status de connexion des membres
+                else if(response[0].status == 'checkOnlineStatus') {
+                    // On met à jour le statut de connexion des Contacts - LeftSide
+                    // On parcourt la liste des contacts (leftside) pour le faire
+                    $('.name-meta').each(function() {
+                        var contact = this;
+                        for(var i = 0, c = response[1].length; i < c; i++) {
+                            if($(contact).text() == response[1][i].pseudo) {
+                                manager.settings.setConnexionIcone(response[1][i], $(contact).next().next().children('i').get()[0]);
+                            }
+                        }
+                    });
+                    // On met à jour le statut de connexion de session(userName) - Zone ChatRoom
+                    // On parcourt la liste des contacts (reponse) pour le faire + Si session --> offline on désactive le form POST
+                    for(var i = 0, c = response[1].length; i < c; i++) {
+                        if($('#sideBarUserName').text().slice(1) == response[1][i].pseudo) {
+                            manager.settings.setConnexionIcone(response[1][i], $('#connexionStatus').get()[0]);
+                            if(response[1][i].connexionStatus == 'offline') $('#senderMessage').attr('disabled', true);
+                        }
+                    }
+                    return true;
+                }
+                // Cas - Autocompletion, affichage des membres (zone de recherche)
+                // On affiche l'autocompletion + send Ajax pour (activer le membre choisi et afficher la conversation)
+                else if(response[0].status == 'autoCompletion') {
+                    $('#searchText').autocomplete({
+                        source : response[0].contactList
+                    });
+                    $('.sideBar-body').each(function() {
+                        if($(this).find('.name-meta').text() == $('#searchText').val()) {
+                            manager.sendAjaxRequest('chatRoomSide',
+                                                    'GET',
+                                                    'chat/loadConversation/' + $(this).find('.name-meta').text() + '/showConversation',
+                                                     this);
+                        }
+                    });
                 }
                 return false;
             },
@@ -225,12 +299,14 @@ $(function(){
                 // On met à jour la photo et le pseudo du heading dans le chatRoom
                 // S'il n'y a pas de messages envoyés et reçus on affiche la zone vide avec le message say hello!
                 if(response[0].status == 'showConversation') {
-                    $('#chatHeadingAvatar').attr('src', $(element).find('img').attr('src')); // mise à jour photo Chatromm
+                    $('#chatHeadingAvatar').attr('src', $(element).find('img').attr('src')).show(); // mise à jour photo Chatromm
                     $('#receiverHeading').text($(element).find('.name-meta').text());        // mise à jour pseudo Chatromm
+                    manager.settings.setElementActive(element);
                     manager.settings.emptyChatRoom();
 
                     if(response[0].messagesList == 'empty') {
                         $('.message-date').text('Say Hello!');
+                        manager.settings.setChatRoomActive('click');
                         return true;
                     }
                 }
@@ -244,23 +320,26 @@ $(function(){
                     }
                     // On vide le chatRoom et on met à jour la date
                     manager.settings.emptyChatRoom();
-                    $('.message-date').text(response[1].datePub);
+                    $('.message-date').text(response[2].datePub);
                 }
                 // Cas - Affichage des messages suivants (quand on click sur Boutton suivant)
                 // S'il n'y a pas de messages à afficher on supprime le boutton suivant
                 else if(response[0].status == 'nextMessages') {
-                    if(response[0].messageList == 'empty') {
+                    if(response[0].messagesList == 'empty') {
                         $('.bouttonSuivant').remove();
                         alert('There are no more messages to display!');
+                        manager.settings.setChatRoomActive('click');
                         return true;
                     }
                     // On vide le chatRoom et on met à jour la date
                     manager.settings.emptyChatRoom();
-                    $('.message-date').text(response[1].datePub);
+                    $('.message-date').text(response[2].datePub);
                 }
                 // Cas - Ajout message conversation - POST via Formulaire
+                // On vide la zone de texte du formulaire et on affiche le message envoyé
                 else if(response[0].status == 'postMessage') {
                     var conversation = manager.settings.createHTMLElements(response, 'postMessage');
+                    $('#senderMessage').val('');
                     $(conversation).insertBefore($('#myAnchor'));
                     return true;
                 }
@@ -274,12 +353,12 @@ $(function(){
                     {
                         if($(this).hasClass('active')) {
                             var conversation = manager.settings.createHTMLElements(response, 'loadNewMessages');
-                            if(conversation != null)
+                            if(conversation != '')
                             {
-                                // On affiche les new Messages et on send Ajax pour update messageStatus 'Read' (table messages)
+                                // On affiche les new Messages et on send Ajax pour update messageStatus 'oldPost' (table messages)
                                 // Paramètres envoyés : pseudo du contact qui a send le message (depuis left side) + messageStatus (oldPost)
                                 $(conversation).insertBefore($('#myAnchor'));
-                                manager.sendAjaxRequest('none', 'GET', 'chat/updateMessageStatus/' . $(this).find('.name-meta').text() . '/oldPost');
+                                manager.sendAjaxRequest('none', 'GET', 'chat/updateMessageStatus/' + $(this).find('.name-meta').text() + '/oldPost/loadNewmessage');
                             }
                         }
                         else { manager.settings.setNewMessageIcone('ON', this, response); }
@@ -287,13 +366,16 @@ $(function(){
                     return true;
                 }
                 // On recupère les elements HTML de la conversation et On insère la conversation avant l'ancre' FOCUS
+                // Ensuite on désactive les anciens évènement clicks  et on active les nouveaux bouttons precédent et suivant + show la date
                 var conversation = manager.settings.createHTMLElements(response, 'current||previous||next-Timeline');
                 $(conversation).insertBefore($('#myAnchor'));
+                $('.reply-send, .bouttonSuivant, .bouttonPrecedent').off('click');
+                response[0].status == 'showConversation' ? manager.setEvents.chatRoomSide('first') : manager.setEvents.chatRoomSide();
+                manager.settings.setChatRoomActive('displayDate');
 
                 // Enfin Si le status = showConversation, on active l'element et le chatRoom +
                 // Paramètres envoyés : $receiverPseudo, $conversationType, $conversationDate, $conversationTime
                 if(response[0].status == 'showConversation') {
-                    manager.settings.setElementActive(element);
                     manager.settings.setNewMessageIcone('OFF', element);
                     manager.settings.setChatRoomActive('click', response[2].datePub);
                 }
@@ -307,113 +389,4 @@ $(function(){
         }
     }
     manager.loadProcess();
-
-
-
-
-    // Test OVERLAY ---
-    /*$(".heading-compose").click(function() {
-        $('#myOverlay, #myGifLoad').show();
-    });*/
-
-
-
-/*
-    $(".heading-compose").click(function() {
-      // Code to suppress contact
-  });*/
-
 });
-
-
-/*
-if(response[0].status == 'loadNewMessages') {
-var conversation = manager.settings.createHTMLElements(response, 'loadNewMessages', element);
-if(conversation != null)
-{
-    if($(element).hasClass('active')) { $(conversation).insertBefore($('#myAnchor')); }
-    else { manager.settings.setNewMessageIcone('ON', element); }
-}
-return true;
-}
-
-
-if(response[0].status == 'showConversation') {
-    manager.settings.setElementActive(element);
-    manager.settings.setChatRoomActive('click', response[1].datePub, element);
-    clearID = setInterval("manager.sendAjaxRequest('chatRoomSide', 'GET', 'chat/loadNewMessages/' + $('#receiverHeading').text() + '/loadNewMessages/' + $('.message-date').text() + '/' + $('.receiver:last .message-time').text(), element);", 30000);
-}
-return true;
-
-
-
-Quand User send message --->
-        On affiche messageage ds Conversation
-        On save message dans BDD - messages
-
-
-        REQUESTS - CONVERSATION
-            On charge d'abord les messages de la derniere date
-                SELECT * FROM messages
-                WHERE ladate = (SELECT MAX(ladate) FROM test) AND sender = pseudo AND receiver = pseudo
-                ORDER BY time
-
-            Ensuite au click du boutton precedent/suivant on charge les messages de date -1 ou date + 1
-                SELECT * FROM test
-                WHERE ladate = CAST(:ladate AS DATE) + 1 AND sender = pseudo AND receiver = pseudo
-                ORDER BY time
-
-        REQUESTS - CONTACT
-        SELECT * FROM membres ORDER BY id
-            (if userStatus == online => l'user est connecté    => on affiche le Membre + boutton vert
-             if userStatus != online => l'user est déconnecté  => on affiche le Membre + boutton gris)
-
-        NEW FONCTION .. ON New MESSAGE => icone nouveau Message
-            - when message is sent => update membre set Status = "new"
-            - on contact, if member->messageStatus = new => echo icone New Message
-            - on contact, on click => open conversation and remove Icone New Message
-
-            setInterval on charge toutes les 30s les messages de tout le monde,
-                if element is active => displayResponse
-                    => for each line in Response Array => getElementHTML
-                else show icone new Message
-
-                On click (show Conversation => remove icone message and send Ajax status read)
-                On Post new Message => insert into database and set message notRead
-
-
-
-
-
-
-
-
-        OBJET JSON - RESPONSE
-            response.status
-                - ajoutConversation
-                - showConversation
-                - previousMessages
-                - nextMessages
-                - suppression
-
-            response.deleteList     | Suppression
-                - #ahmed
-                -#chou
-                -#hope
-            // Ensuite on ajoute les colonnes de la table
-            response[i].sender    | Afficher message
-            response[i].photoSender    | Afficher message
-            response[i].senderMessage    | Afficher message
-            etc.
-
-            Exemple
-            $var =  array result of select from data base
-
-            ensuite on rajoute au début (array_unshift) la ligne suivante
-                array_unshift($var, "{status: showMessage, messageList: 'empty'}");
-                resultat: $var[0] = '{status: showMessage, messageList: 'empty'}'
-
-
-
-
-        */

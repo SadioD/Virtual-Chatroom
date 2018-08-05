@@ -526,26 +526,28 @@ body {
 .fa-commenting {
     color: rgb(9, 186, 227);
 }
-#surcouche {
-    position: absolute;
-    top: 15.6%;
-    left: 35.5%;
-    height: 355px;
-    width: 57.2%;
-    background: lightgray;
-    z-index: 1000000;
-}
 .bouttonPrecedent, .bouttonSuivant {
     /*background: yellow;*/
     height: 30px;
     padding-top: 1%;
+    z-index: 10000000;
 }
 .bouttonPrecedent i, .bouttonSuivant i {
     cursor: pointer;
 }
 .bouttonSuivant {
-    margin-bottom: 1%;
-    margin-top: 1%;
+    position: absolute;
+    bottom: 13%;
+}
+#myAnchor {
+    height: 30px;
+    width: 2%;
+}
+
+@media screen and (max-width: 1000px) {
+    #sideBarUserName {
+        font-size: 85%;
+    }
 }
 
 @media screen and (max-width: 770px) {
@@ -691,12 +693,16 @@ body {
   .message-text {
       font-size: 97%;
   }
-  #surcouche {
-      display: none;
-  }
   .bouttonPrecedent, .bouttonSuivant {
       font-size: 80%;
       height: 35px;
+  }
+  #sideBarUserName {
+      font-size: 100%;
+  }
+  .bouttonSuivant {
+      position: absolute;
+      bottom: 16%;
   }
 }
 
@@ -714,9 +720,6 @@ body {
       left: 38%;
       background: #009688;
     }
-    #surcouche {
-        display: none;
-    }
 }
 
 @media screen and (max-width: 400px) {
@@ -730,9 +733,6 @@ body {
     }
     .message-previous {
       background: #009688;
-    }
-    #surcouche {
-        display: none;
     }
 }
 @media screen and (max-width: 370px) {
@@ -748,9 +748,6 @@ body {
       width: 58%;
       left: 28%;
       background: #009688;
-    }
-    #surcouche {
-        display: none;
     }
     .bouttonPrecedent {
         height: 30px;
