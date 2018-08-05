@@ -4,34 +4,15 @@ class Chat extends CI_Controller
     // ATTRIBUT + CONST --------------------------------------------------------------------------------------------------------------
     public function __construct()
     {
-        parent::__construct();
-        //$this->output->cache(1);
+        parent::__construct();    
         $this->load->model('chatManager');
         $this->load->model('memberManager');
         $this->layout->setLayout('bootstrap');
-
-
-
-    //    $this->layout->includeJS('footer');
-
     }//-------------------------------------------------------------------------------------------------------------------------------
     // Redirection Controleur  ---------------------------------------------------------------------------------------------------------------------
     public function index() {
         $this->home();
     }//------------------------------------------------------------------------------------------------------------------------------
-    // Page de connexion - Accueil ---------------------------------------------------------------------------------------------------------------------
-    public function connexion()
-    {
-        // controler user
-        $this->session->setAuthentificated(true);
-        $this->session->set_userdata('userName', 'Ahmed');
-        $this->session->set_userdata('photo', 'avatar_homme.png');
-        $this->memberManager->updateEntry(['pseudo' => $this->session->userdata('userName')], ['connexionStatus' => 'online']);
-
-        echo 'Page de connexion , if online access true, green boutton else gray boutton';
-
-        // if sexe = home => photo = https://bootdey.com/img/Content/avatar/avatar3.png (cherchez photo homme et femme)
-    }//-------------------------------------------------------------------------------------------------------------------------------
     // La page de Chat  ---------------------------------------------------------------------------------------------------------------------
     public function home() {
         if($this->session->isAuthentificated()) {
@@ -43,7 +24,6 @@ class Chat extends CI_Controller
             $this->layout->includeCSS('home');
             $this->layout->includeJS('home');
             $this->layout->showView('chat/home', array('contactList' => $contactList));
-
         }
         else {
             redirect(site_url('user/connexion'));
@@ -209,24 +189,6 @@ class Chat extends CI_Controller
         }
         echo json_encode($response);
         return true;
-    }
-    public function test() {
-        /*$this->layout->includeJS('test');
-        $this->layout->showView('test.php');*/
-        //echo date('d-m-Y à H:i');
-        $this->layout->includeCSS('jquery-ui');
-        $this->layout->includeJS('jquery-ui');
-        $this->layout->includeJS('test');
-
-        $this->layout->showView('test.php');
-    }
-    public function ajaxtest() {
-        // $myVar = [['pere' => 'douze', 'mere' => 'chou'], ['pere' => 'ayden', 'mere' => 'hope']];
-        // echo json_encode($myVar);
-        $response['message'] = $this->input->post('receiverPseudo') . ' - a recu - ' . $this->input->post('senderMessage');
-        echo json_encode($response);
-
-
     }//-----------------------------------------------------------------------------------------------------------------------------
     // AJAX charge les nouveaux messages dans le fil - toutes les 30s ---------------------------------------------------------------------------------------------------
     // On charge les messages de tout le monde, where receiver = session[userName] AND message status = 'newPost'
@@ -246,6 +208,4 @@ class Chat extends CI_Controller
         $contactList = $this->memberManager->getData();
         $this->sendResponse($contactList, 'checkOnlineStatus');
     }//---------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 }

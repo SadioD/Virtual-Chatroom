@@ -5,15 +5,11 @@ class User extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-
         $this->load->model('memberManager');
         $this->load->library('form_validation');
         $this->layout->setLayout('bootstrap');
         $this->layout->includeJS('footer');
         $this->layout->includeCSS('footer');
-
-    //    $this->layout->includeJS('footer');
-
     }//-------------------------------------------------------------------------------------------------------------------------------
     // Redirection Controleur  ---------------------------------------------------------------------------------------------------------------------
     public function index() {

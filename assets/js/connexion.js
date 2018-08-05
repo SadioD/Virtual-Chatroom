@@ -53,8 +53,6 @@ $(function() {
         var myRegex = /^[a-z0-9]{1,9}$/i,
             manager = {};
 
-            ///[a-z0-9]+/i,
-
         manager = {
             settings: {
                 // Valide les champs
